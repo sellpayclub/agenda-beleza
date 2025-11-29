@@ -24,10 +24,15 @@ export async function getAppointments(filters?: {
   let query = supabase
     .from('appointments')
     .select(`
-      *,
-      client:clients (*),
-      employee:employees (*),
-      service:services (*)
+      id,
+      start_time,
+      end_time,
+      status,
+      payment_status,
+      notes,
+      client:clients (id, name, phone, email),
+      employee:employees (id, name, email),
+      service:services (id, name, price, duration_minutes)
     `)
     .eq('tenant_id', tenantId)
     .order('start_time', { ascending: true })
@@ -66,10 +71,15 @@ export async function getAppointment(id: string) {
   const { data, error } = await supabase
     .from('appointments')
     .select(`
-      *,
-      client:clients (*),
-      employee:employees (*),
-      service:services (*)
+      id,
+      start_time,
+      end_time,
+      status,
+      payment_status,
+      notes,
+      client:clients (id, name, phone, email),
+      employee:employees (id, name, email),
+      service:services (id, name, price, duration_minutes)
     `)
     .eq('id', id)
     .single()
