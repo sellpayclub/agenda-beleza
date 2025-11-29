@@ -173,7 +173,7 @@ export async function getTenantPublicData(slug: string) {
       )
     `)
     .eq('slug', slug)
-    .eq('subscription_status', 'active')
+    .in('subscription_status', ['active', 'trial'])
     .single()
 
   if (error) {
