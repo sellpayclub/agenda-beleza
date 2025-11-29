@@ -59,9 +59,53 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
   const [filterPaymentStatus, setFilterPaymentStatus] = useState<string>('all')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
+  // Helper function to safely get service price
+  const getServicePrice = (appointment: any): number => {
+    if (!appointment) return 0
+    
+    // Handle service as object or array
+    const service = Array.isArray(appointment.service) 
+      ? appointment.service[0] 
+      : appointment.service
+    
+    if (!service) {
+      return 0
+    }
+    
+    // Handle price - PostgreSQL DECIMAL comes as string
+    let priceValue = service.price
+    
+    // Convert to number if string
+    if (typeof priceValue === 'string') {
+      // Remove currency symbols and convert comma to dot
+      priceValue = priceValue.replace(/[^\d,.-]/g, '').replace(',', '.')
+      priceValue = parseFloat(priceValue) || 0
+    } else {
+      priceValue = Number(priceValue) || 0
+    }
+    
+    return priceValue
+  }
+
   // Update appointments when initialAppointments changes (after refresh)
   useEffect(() => {
-    setAppointments(initialAppointments)
+    const appointmentsData = initialAppointments || []
+    setAppointments(appointmentsData)
+    
+    // Debug: log appointments to help identify issues
+    if (appointmentsData.length > 0) {
+      console.log(`[Financeiro] Received ${appointmentsData.length} appointments`)
+      const sample = appointmentsData[0]
+      console.log('[Financeiro] Sample appointment:', {
+        id: sample.id,
+        status: sample.status,
+        payment_status: sample.payment_status,
+        service: sample.service,
+        servicePrice: getServicePrice(sample),
+      })
+    } else {
+      console.log('[Financeiro] No appointments received - checking if this is expected')
+    }
   }, [initialAppointments])
 
   // Auto-refresh when page receives focus
@@ -105,21 +149,44 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
   }, [appointments, filterStatus, filterPaymentStatus])
 
   const stats = useMemo(() => {
+    if (!appointments || appointments.length === 0) {
+      return {
+        totalRevenue: 0,
+        pendingRevenue: 0,
+        projectedRevenue: 0,
+        completedCount: 0,
+        paidCount: 0,
+        pendingCount: 0,
+      }
+    }
+
     // Receita Recebida: Agendamentos com payment_status='paid'
     const paid = appointments.filter((a) => a.payment_status === 'paid')
-    const totalRevenue = paid.reduce((sum, a) => sum + (a.service?.price || 0), 0)
+    const totalRevenue = paid.reduce((sum, a) => sum + getServicePrice(a), 0)
 
     // A Receber: Agendamentos com payment_status='pending' E status não cancelado
     const pending = appointments.filter(
       (a) => a.payment_status === 'pending' && a.status !== 'cancelled'
     )
-    const pendingRevenue = pending.reduce((sum, a) => sum + (a.service?.price || 0), 0)
+    const pendingRevenue = pending.reduce((sum, a) => sum + getServicePrice(a), 0)
 
     // Receita Projetada: Todos os agendamentos não cancelados (completed, pending, confirmed)
     const nonCancelled = appointments.filter((a) => a.status !== 'cancelled')
-    const projectedRevenue = nonCancelled.reduce((sum, a) => sum + (a.service?.price || 0), 0)
+    const projectedRevenue = nonCancelled.reduce((sum, a) => sum + getServicePrice(a), 0)
 
     const completed = appointments.filter((a) => a.status === 'completed')
+
+    // Debug calculation results
+    console.log('[Financeiro Stats]', {
+      totalAppointments: appointments.length,
+      paid: paid.length,
+      pending: pending.length,
+      nonCancelled: nonCancelled.length,
+      totalRevenue,
+      pendingRevenue,
+      projectedRevenue,
+      samplePaid: paid[0] ? { service: paid[0].service, price: getServicePrice(paid[0]) } : null,
+    })
 
     return {
       totalRevenue,
@@ -143,15 +210,21 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
   const handleExport = () => {
     // Generate CSV
     const headers = ['Data', 'Cliente', 'Serviço', 'Funcionário', 'Valor', 'Status', 'Pagamento']
-    const rows = filteredAppointments.map((apt) => [
-      format(new Date(apt.start_time), 'dd/MM/yyyy HH:mm'),
-      apt.client?.name || '',
-      apt.service?.name || '',
-      apt.employee?.name || '',
-      apt.service?.price || 0,
-      apt.status,
-      apt.payment_status,
-    ])
+    const rows = filteredAppointments.map((apt) => {
+      const service = Array.isArray(apt.service) ? apt.service[0] : apt.service
+      const client = Array.isArray(apt.client) ? apt.client[0] : apt.client
+      const employee = Array.isArray(apt.employee) ? apt.employee[0] : apt.employee
+      
+      return [
+        format(new Date(apt.start_time), 'dd/MM/yyyy HH:mm'),
+        client?.name || '',
+        service?.name || '',
+        employee?.name || '',
+        getServicePrice(apt),
+        apt.status,
+        apt.payment_status,
+      ]
+    })
 
     const csv = [headers, ...rows].map((row) => row.join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -312,11 +385,11 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
                       <TableCell className="whitespace-nowrap">
                         {format(new Date(apt.start_time), 'dd/MM/yyyy HH:mm')}
                       </TableCell>
-                      <TableCell>{apt.client?.name}</TableCell>
-                      <TableCell>{apt.service?.name}</TableCell>
-                      <TableCell>{apt.employee?.name}</TableCell>
+                      <TableCell>{(Array.isArray(apt.client) ? apt.client[0] : apt.client)?.name || ''}</TableCell>
+                      <TableCell>{(Array.isArray(apt.service) ? apt.service[0] : apt.service)?.name || ''}</TableCell>
+                      <TableCell>{(Array.isArray(apt.employee) ? apt.employee[0] : apt.employee)?.name || ''}</TableCell>
                       <TableCell className="font-medium">
-                        {formatCurrency(apt.service?.price || 0)}
+                        {formatCurrency(getServicePrice(apt))}
                       </TableCell>
                       <TableCell>
                         <Badge className={paymentStatusColors[apt.payment_status]}>

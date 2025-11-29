@@ -457,14 +457,14 @@ export async function getMonthlyAppointments(year: number, month: number) {
     .eq('tenant_id', user.tenant_id)
     .gte('start_time', startDate.toISOString())
     .lte('start_time', endDate.toISOString())
-    .order('start_time')
+    .order('start_time', { ascending: false })
 
   if (error) {
     console.error('Error fetching monthly appointments:', error)
     return []
   }
 
-  return data
+  return data || []
 }
 
 export async function getUpcomingAppointments(limit = 5) {
