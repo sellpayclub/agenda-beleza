@@ -12,14 +12,14 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = createAdminClient()
+    const supabase = createAdminClient() as any
 
     const { error } = await supabase
       .from('tenants')
       .update({ 
         subscription_status: 'cancelled',
         updated_at: new Date().toISOString(),
-      })
+      } as any)
       .eq('id', tenantId)
 
     if (error) {

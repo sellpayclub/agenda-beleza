@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getServices } from '@/lib/actions/services'
 import { ServicesClient } from './services-client'
 

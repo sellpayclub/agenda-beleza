@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getMonthlyAppointments } from '@/lib/actions/appointments'
 import { FinanceiroClient } from './financeiro-client'
 import { format } from 'date-fns'

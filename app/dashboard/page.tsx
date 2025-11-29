@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getDashboardStats, getMonthlyRevenueChart, getTopServices } from '@/lib/actions/analytics'
 import { getUpcomingAppointments } from '@/lib/actions/appointments'
 import { StatsCards } from '@/components/dashboard/stats-cards'

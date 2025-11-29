@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getCurrentTenant } from '@/lib/actions/auth'
 import { AssinaturaClient } from './assinatura-client'
 

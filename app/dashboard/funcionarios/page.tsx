@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getEmployees } from '@/lib/actions/employees'
 import { getServices } from '@/lib/actions/services'
 import { EmployeesClient } from './employees-client'

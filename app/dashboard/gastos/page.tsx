@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getExpenses, getExpenseStats, getExpenseCategories } from '@/lib/actions/expenses'
 import { GastosClient } from './gastos-client'
 

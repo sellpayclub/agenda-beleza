@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getCurrentTenant } from '@/lib/actions/auth'
 import { redirect } from 'next/navigation'
 import { ConfiguracoesClient } from './configuracoes-client'

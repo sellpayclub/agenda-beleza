@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { redirect } from 'next/navigation'
 import { getCurrentUserAndTenant } from '@/lib/actions/auth'
 import { Sidebar } from '@/components/dashboard/sidebar'

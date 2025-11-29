@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getScheduleBlocks } from '@/lib/actions/schedule-blocks'
 import { getEmployees } from '@/lib/actions/employees'
 import { BlocksClient } from './blocks-client'

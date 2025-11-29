@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
     }
 
-    const supabase = createAdminClient()
+    const supabase = createAdminClient() as any
 
     // Gerar nome único para o arquivo
     const fileExt = file.name.split('.').pop()
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     // Atualizar logo_url no tenant
     const { error: updateError } = await supabase
       .from('tenants')
-      .update({ logo_url: urlWithTimestamp })
+      .update({ logo_url: urlWithTimestamp } as any)
       .eq('id', tenantId)
 
     if (updateError) {
@@ -115,7 +115,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
     }
 
-    const supabase = createAdminClient()
+    const supabase = createAdminClient() as any
 
     // Remover arquivo do storage (tentar com diferentes extensões)
     const extensions = ['png', 'jpg', 'jpeg', 'gif', 'webp']
@@ -128,7 +128,7 @@ export async function DELETE(request: NextRequest) {
     // Atualizar tenant para remover logo_url
     const { error: updateError } = await supabase
       .from('tenants')
-      .update({ logo_url: null })
+      .update({ logo_url: null } as any)
       .eq('id', tenantId)
 
     if (updateError) {
