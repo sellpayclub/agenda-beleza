@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,6 +29,7 @@ import {
   CreditCard,
   Banknote,
   Smartphone,
+  RefreshCw,
 } from 'lucide-react'
 import { formatCurrency, formatDate, getPaymentStatusLabel } from '@/lib/utils/format'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
@@ -51,8 +53,10 @@ const paymentMethodIcons: Record<string, any> = {
 }
 
 export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps) {
+  const router = useRouter()
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterPaymentStatus, setFilterPaymentStatus] = useState<string>('all')
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const filteredAppointments = useMemo(() => {
     return initialAppointments.filter((apt) => {
@@ -86,6 +90,15 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
     }
   }, [initialAppointments])
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    router.refresh()
+    // Aguardar um pouco para a atualização completar
+    setTimeout(() => {
+      setIsRefreshing(false)
+    }, 1000)
+  }
+
   const handleExport = () => {
     // Generate CSV
     const headers = ['Data', 'Cliente', 'Serviço', 'Funcionário', 'Valor', 'Status', 'Pagamento']
@@ -117,10 +130,20 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
             {format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}
           </p>
         </div>
-        <Button variant="outline" onClick={handleExport}>
-          <Download className="w-4 h-4 mr-2" />
-          Exportar CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="w-4 h-4 mr-2" />
+            Exportar CSV
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
