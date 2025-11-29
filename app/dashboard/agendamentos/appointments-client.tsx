@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -86,6 +87,7 @@ export function AppointmentsClient({
   employees,
   services,
 }: AppointmentsClientProps) {
+  const router = useRouter()
   const [appointments, setAppointments] = useState(initialAppointments)
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [filterEmployee, setFilterEmployee] = useState<string>('all')
@@ -141,6 +143,7 @@ export function AppointmentsClient({
     } else {
       toast.success('Status atualizado')
       setAppointments(appointments.map((a) => (a.id === id ? { ...a, status } : a)))
+      router.refresh() // Refresh to update all pages (dashboard, financeiro, analytics)
     }
   }
 
@@ -159,6 +162,7 @@ export function AppointmentsClient({
             : a
         )
       )
+      router.refresh() // Refresh to update all pages (dashboard, financeiro, analytics)
     }
     setCancelDialogOpen(false)
     setCancellingId(null)
@@ -183,6 +187,7 @@ export function AppointmentsClient({
           a.id === payingId ? { ...a, payment_status: 'paid', payment_method: paymentMethod } : a
         )
       )
+      router.refresh() // Refresh to update financeiro, dashboard, and analytics pages
     }
     setPaymentDialogOpen(false)
     setPayingId(null)
@@ -198,6 +203,7 @@ export function AppointmentsClient({
     } else {
       toast.success('Agendamento excluído')
       setAppointments(appointments.filter((a) => a.id !== id))
+      router.refresh() // Refresh to update dashboard and analytics pages
     }
   }
 

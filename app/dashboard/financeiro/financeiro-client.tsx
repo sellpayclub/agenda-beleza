@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -54,31 +54,72 @@ const paymentMethodIcons: Record<string, any> = {
 
 export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps) {
   const router = useRouter()
+  const [appointments, setAppointments] = useState(initialAppointments)
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterPaymentStatus, setFilterPaymentStatus] = useState<string>('all')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
+  // Update appointments when initialAppointments changes (after refresh)
+  useEffect(() => {
+    setAppointments(initialAppointments)
+  }, [initialAppointments])
+
+  // Auto-refresh when page receives focus
+  useEffect(() => {
+    const handleFocus = () => {
+      router.refresh()
+    }
+
+    window.addEventListener('focus', handleFocus)
+    
+    // Also refresh when coming back to this tab
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        router.refresh()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [router])
+  
+  // Refresh data periodically (every 15 seconds) to keep it updated
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh()
+    }, 15000) // 15 seconds - more frequent updates
+
+    return () => clearInterval(interval)
+  }, [router])
+
   const filteredAppointments = useMemo(() => {
-    return initialAppointments.filter((apt) => {
+    return appointments.filter((apt) => {
       const statusMatch = filterStatus === 'all' || apt.status === filterStatus
       const paymentMatch = filterPaymentStatus === 'all' || apt.payment_status === filterPaymentStatus
       return statusMatch && paymentMatch
     })
-  }, [initialAppointments, filterStatus, filterPaymentStatus])
+  }, [appointments, filterStatus, filterPaymentStatus])
 
   const stats = useMemo(() => {
-    const completed = initialAppointments.filter((a) => a.status === 'completed')
-    const paid = initialAppointments.filter((a) => a.payment_status === 'paid')
-    const pending = initialAppointments.filter(
+    // Receita Recebida: Agendamentos com payment_status='paid'
+    const paid = appointments.filter((a) => a.payment_status === 'paid')
+    const totalRevenue = paid.reduce((sum, a) => sum + (a.service?.price || 0), 0)
+
+    // A Receber: Agendamentos com payment_status='pending' E status não cancelado
+    const pending = appointments.filter(
       (a) => a.payment_status === 'pending' && a.status !== 'cancelled'
     )
-
-    const totalRevenue = paid.reduce((sum, a) => sum + (a.service?.price || 0), 0)
     const pendingRevenue = pending.reduce((sum, a) => sum + (a.service?.price || 0), 0)
-    const projectedRevenue = [...completed, ...pending].reduce(
-      (sum, a) => sum + (a.service?.price || 0),
-      0
-    )
+
+    // Receita Projetada: Todos os agendamentos não cancelados (completed, pending, confirmed)
+    const nonCancelled = appointments.filter((a) => a.status !== 'cancelled')
+    const projectedRevenue = nonCancelled.reduce((sum, a) => sum + (a.service?.price || 0), 0)
+
+    const completed = appointments.filter((a) => a.status === 'completed')
 
     return {
       totalRevenue,
@@ -88,12 +129,12 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
       paidCount: paid.length,
       pendingCount: pending.length,
     }
-  }, [initialAppointments])
+  }, [appointments])
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
     router.refresh()
-    // Aguardar um pouco para a atualização completar
+    // Aguardar um pouco para a atualização completar e atualizar estado local
     setTimeout(() => {
       setIsRefreshing(false)
     }, 1000)
@@ -200,7 +241,7 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
               {formatCurrency(stats.projectedRevenue)}
             </div>
             <p className="text-sm text-gray-500">
-              {stats.completedCount} atendimentos realizados
+              {appointments.filter((a) => a.status !== 'cancelled').length} agendamentos ativos
             </p>
           </CardContent>
         </Card>

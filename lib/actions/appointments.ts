@@ -7,7 +7,7 @@ import { getCurrentUser } from './auth'
 import { findOrCreateClient } from './clients'
 import { addMinutes, startOfDay, endOfDay, startOfMonth, endOfMonth, format } from 'date-fns'
 import type { AppointmentInsert, AppointmentUpdate, AppointmentStatus, PaymentStatus } from '@/types'
-import { sendConfirmationWhatsApp, sendCancellationWhatsApp, sendAdminNewAppointmentNotification } from '@/lib/services/notifications'
+import { sendConfirmationWhatsApp, sendPendingAppointmentWhatsApp, sendCancellationWhatsApp, sendAdminNewAppointmentNotification } from '@/lib/services/notifications'
 
 export async function getAppointments(filters?: {
   date?: Date
@@ -165,14 +165,24 @@ export async function createAppointment(data: {
     return { error: 'Erro ao criar agendamento' }
   }
 
-  // Get tenant data for notifications
-  const { data: tenant } = await supabase
-    .from('tenants')
-    .select('*')
-    .eq('id', data.tenantId)
-    .single()
+  // Get tenant data and settings for notifications
+  const [tenantResult, tenantSettingsResult] = await Promise.all([
+    supabase
+      .from('tenants')
+      .select('*')
+      .eq('id', data.tenantId)
+      .single(),
+    supabase
+      .from('tenant_settings')
+      .select('notification_preferences')
+      .eq('tenant_id', data.tenantId)
+      .single()
+  ])
 
-  // Send WhatsApp confirmation to client
+  const tenant = tenantResult.data
+  const tenantSettings = tenantSettingsResult.data
+
+  // Send WhatsApp notification to client (always when enabled)
   if (tenant && appointment.client && appointment.employee && appointment.service) {
     const notificationDetails = {
       appointment,
@@ -182,10 +192,24 @@ export async function createAppointment(data: {
       tenant,
     }
 
-    // Send confirmation to client
-    sendConfirmationWhatsApp(notificationDetails).catch(err => {
-      console.error('Error sending WhatsApp confirmation:', err)
-    })
+    // Check notification preferences
+    const preferences = tenantSettings?.notification_preferences as any
+    const whatsappConfirmation = preferences?.whatsappConfirmation !== false // Default to true if not set
+
+    if (whatsappConfirmation) {
+      // Send appropriate message based on status
+      if (status === 'confirmed') {
+        // Send confirmation message
+        sendConfirmationWhatsApp(notificationDetails).catch(err => {
+          console.error('Error sending WhatsApp confirmation:', err)
+        })
+      } else {
+        // Send pending appointment message
+        sendPendingAppointmentWhatsApp(notificationDetails).catch(err => {
+          console.error('Error sending WhatsApp pending notification:', err)
+        })
+      }
+    }
 
     // Send notification to admin (tenant phone)
     if (tenant.phone) {
@@ -195,8 +219,11 @@ export async function createAppointment(data: {
     }
   }
 
+  // Revalidate all affected paths
   revalidatePath('/dashboard/agendamentos')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/financeiro')
+  revalidatePath('/dashboard/analytics')
   
   return { data: appointment }
 }
@@ -227,6 +254,10 @@ export async function updateAppointmentStatus(id: string, status: AppointmentSta
     .eq('tenant_id', user.tenant_id)
     .single()
 
+  if (!fullAppointment) {
+    return { error: 'Agendamento não encontrado' }
+  }
+
   const { data: appointment, error } = await supabase
     .from('appointments')
     .update(updateData)
@@ -240,23 +271,50 @@ export async function updateAppointmentStatus(id: string, status: AppointmentSta
     return { error: 'Erro ao atualizar status' }
   }
 
+  // Prepare notification details
+  const notificationDetails = {
+    appointment: { ...fullAppointment, ...updateData },
+    client: fullAppointment.client,
+    employee: fullAppointment.employee,
+    service: fullAppointment.service,
+    tenant: fullAppointment.tenant,
+  }
+
+  // Send confirmation WhatsApp if status changed to confirmed
+  if (status === 'confirmed' && fullAppointment.status !== 'confirmed') {
+    // Check tenant notification preferences
+    const { data: tenantSettings } = await supabase
+      .from('tenant_settings')
+      .select('notification_preferences')
+      .eq('tenant_id', user.tenant_id)
+      .single()
+
+    const preferences = tenantSettings?.notification_preferences as any
+    const whatsappConfirmation = preferences?.whatsappConfirmation !== false // Default to true if not set
+
+    if (whatsappConfirmation && fullAppointment.client && fullAppointment.employee && fullAppointment.service) {
+      sendConfirmationWhatsApp(notificationDetails).catch(err => {
+        console.error('Error sending confirmation WhatsApp:', err)
+      })
+    }
+  }
+
   // Send cancellation WhatsApp if status is cancelled
   if (status === 'cancelled' && fullAppointment) {
-    const notificationDetails = {
-      appointment: { ...fullAppointment, ...updateData },
-      client: fullAppointment.client,
-      employee: fullAppointment.employee,
-      service: fullAppointment.service,
-      tenant: fullAppointment.tenant,
-    }
-
     sendCancellationWhatsApp(notificationDetails).catch(err => {
       console.error('Error sending cancellation WhatsApp:', err)
     })
   }
 
+  // Revalidate all affected paths
   revalidatePath('/dashboard/agendamentos')
   revalidatePath('/dashboard')
+  
+  // If status changed to completed, also revalidate financeiro and analytics
+  if (status === 'completed') {
+    revalidatePath('/dashboard/financeiro')
+    revalidatePath('/dashboard/analytics')
+  }
   
   return { data: appointment }
 }
@@ -286,8 +344,11 @@ export async function updatePaymentStatus(id: string, paymentStatus: PaymentStat
     return { error: 'Erro ao atualizar status de pagamento' }
   }
 
+  // Revalidate all affected paths
   revalidatePath('/dashboard/agendamentos')
   revalidatePath('/dashboard/financeiro')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/analytics')
   
   return { data: appointment }
 }
@@ -343,6 +404,8 @@ export async function rescheduleAppointment(id: string, newStartTime: Date) {
   }
 
   revalidatePath('/dashboard/agendamentos')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/analytics')
   
   return { data: appointment }
 }
@@ -367,6 +430,8 @@ export async function deleteAppointment(id: string) {
 
   revalidatePath('/dashboard/agendamentos')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/financeiro')
+  revalidatePath('/dashboard/analytics')
   
   return { success: true }
 }

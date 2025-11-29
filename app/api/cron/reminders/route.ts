@@ -79,6 +79,18 @@ export async function GET(request: NextRequest) {
 
       if (existingResult.data) continue
 
+      // Check tenant notification preferences
+      const { data: tenantSettings } = await supabase
+        .from('tenant_settings')
+        .select('notification_preferences')
+        .eq('tenant_id', apt.tenant_id)
+        .single()
+
+      const preferences = tenantSettings?.notification_preferences as any
+      const whatsappReminder24h = preferences?.whatsappReminder24h !== false // Default to true if not set
+
+      if (!whatsappReminder24h) continue
+
       const details = {
         appointment: apt,
         client: apt.client,
@@ -114,6 +126,18 @@ export async function GET(request: NextRequest) {
         .maybeSingle()
 
       if (existingResult.data) continue
+
+      // Check tenant notification preferences
+      const { data: tenantSettings } = await supabase
+        .from('tenant_settings')
+        .select('notification_preferences')
+        .eq('tenant_id', apt.tenant_id)
+        .single()
+
+      const preferences = tenantSettings?.notification_preferences as any
+      const whatsappReminder1h = preferences?.whatsappReminder1h !== false // Default to true if not set
+
+      if (!whatsappReminder1h) continue
 
       const details = {
         appointment: apt,
