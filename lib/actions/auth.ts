@@ -74,6 +74,10 @@ export async function signIn(formData: FormData) {
 
     redirect('/dashboard')
   } catch (error: any) {
+    // NEXT_REDIRECT é esperado quando redirect() é chamado
+    if (error?.digest?.includes('NEXT_REDIRECT')) {
+      throw error
+    }
     console.error('SignIn error:', error)
     return { error: error?.message || 'Erro inesperado ao fazer login' }
   }
