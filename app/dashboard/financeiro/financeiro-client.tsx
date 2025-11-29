@@ -89,23 +89,7 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
 
   // Update appointments when initialAppointments changes (after refresh)
   useEffect(() => {
-    const appointmentsData = initialAppointments || []
-    setAppointments(appointmentsData)
-    
-    // Debug: log appointments to help identify issues
-    if (appointmentsData.length > 0) {
-      console.log(`[Financeiro] Received ${appointmentsData.length} appointments`)
-      const sample = appointmentsData[0]
-      console.log('[Financeiro] Sample appointment:', {
-        id: sample.id,
-        status: sample.status,
-        payment_status: sample.payment_status,
-        service: sample.service,
-        servicePrice: getServicePrice(sample),
-      })
-    } else {
-      console.log('[Financeiro] No appointments received - checking if this is expected')
-    }
+    setAppointments(initialAppointments || [])
   }, [initialAppointments])
 
   // Auto-refresh when page receives focus
@@ -175,18 +159,6 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
     const projectedRevenue = nonCancelled.reduce((sum, a) => sum + getServicePrice(a), 0)
 
     const completed = appointments.filter((a) => a.status === 'completed')
-
-    // Debug calculation results
-    console.log('[Financeiro Stats]', {
-      totalAppointments: appointments.length,
-      paid: paid.length,
-      pending: pending.length,
-      nonCancelled: nonCancelled.length,
-      totalRevenue,
-      pendingRevenue,
-      projectedRevenue,
-      samplePaid: paid[0] ? { service: paid[0].service, price: getServicePrice(paid[0]) } : null,
-    })
 
     return {
       totalRevenue,

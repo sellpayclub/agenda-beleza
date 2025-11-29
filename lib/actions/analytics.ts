@@ -21,6 +21,34 @@ async function getCachedUser() {
   return cachedUser
 }
 
+// Helper function to safely extract service price from appointment data
+// Handles service as object, array, or null
+// Converts PostgreSQL DECIMAL (string) to number
+function getServicePriceFromAppointment(appointment: any): number {
+  if (!appointment) return 0
+  
+  // Handle service as object or array (Supabase can return either)
+  const service = Array.isArray(appointment.service) 
+    ? appointment.service[0] 
+    : appointment.service
+  
+  if (!service) return 0
+  
+  // Handle price - PostgreSQL DECIMAL comes as string
+  let priceValue = service.price
+  
+  // Convert to number if string
+  if (typeof priceValue === 'string') {
+    // Remove currency symbols and convert comma to dot
+    priceValue = priceValue.replace(/[^\d,.-]/g, '').replace(',', '.')
+    priceValue = parseFloat(priceValue) || 0
+  } else {
+    priceValue = Number(priceValue) || 0
+  }
+  
+  return priceValue
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   const currentUser = await getCachedUser()
   if (!currentUser) {
@@ -74,12 +102,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .eq('tenant_id', tenantId)
       .eq('is_active', true),
 
-    // Monthly revenue
+    // Monthly revenue - use payment_status='paid' instead of status='completed'
     supabase
       .from('appointments')
       .select('service:services(price)')
       .eq('tenant_id', tenantId)
-      .eq('status', 'completed')
+      .eq('payment_status', 'paid')
       .gte('start_time', monthStart.toISOString())
       .lte('start_time', monthEnd.toISOString()),
 
@@ -101,7 +129,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   ])
 
   const monthlyRevenue = revenueResult.data?.reduce((sum: number, apt: any) => {
-    return sum + (apt.service?.price || 0)
+    return sum + getServicePriceFromAppointment(apt)
   }, 0) || 0
 
   return {
@@ -129,7 +157,7 @@ export async function getMonthlyRevenueChart(): Promise<MonthlyRevenue[]> {
     .from('appointments')
     .select('start_time, service:services(price)')
     .eq('tenant_id', tenantId)
-    .eq('status', 'completed')
+    .eq('payment_status', 'paid')
     .gte('start_time', sixMonthsAgo.toISOString())
     .lte('start_time', now.toISOString())
 
@@ -149,7 +177,7 @@ export async function getMonthlyRevenueChart(): Promise<MonthlyRevenue[]> {
   data.forEach((apt: any) => {
     const key = format(new Date(apt.start_time), 'yyyy-MM')
     if (monthMap.has(key)) {
-      monthMap.set(key, (monthMap.get(key) || 0) + (apt.service?.price || 0))
+      monthMap.set(key, (monthMap.get(key) || 0) + getServicePriceFromAppointment(apt))
     }
   })
 
@@ -190,18 +218,19 @@ export async function getTopServices(): Promise<TopService[]> {
   const serviceMap = new Map<string, { name: string; count: number; revenue: number }>()
 
   data.forEach((apt: any) => {
-    const service = apt.service as any
+    const service = Array.isArray(apt.service) ? apt.service[0] : apt.service
     if (!service) return
 
+    const price = getServicePriceFromAppointment(apt)
     const existing = serviceMap.get(apt.service_id)
     if (existing) {
       existing.count++
-      existing.revenue += service.price || 0
+      existing.revenue += price
     } else {
       serviceMap.set(apt.service_id, {
         name: service.name,
         count: 1,
-        revenue: service.price || 0,
+        revenue: price,
       })
     }
   })
@@ -234,19 +263,19 @@ export async function getEmployeePerformance(): Promise<EmployeePerformance[]> {
   const employeeMap = new Map<string, { name: string; appointments: number; revenue: number }>()
 
   data.forEach((apt: any) => {
-    const employee = apt.employee as any
-    const service = apt.service as any
+    const employee = Array.isArray(apt.employee) ? apt.employee[0] : apt.employee
     if (!employee) return
 
+    const price = getServicePriceFromAppointment(apt)
     const existing = employeeMap.get(apt.employee_id)
     if (existing) {
       existing.appointments++
-      existing.revenue += service?.price || 0
+      existing.revenue += price
     } else {
       employeeMap.set(apt.employee_id, {
         name: employee.name,
         appointments: 1,
-        revenue: service?.price || 0,
+        revenue: price,
       })
     }
   })
