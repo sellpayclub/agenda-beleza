@@ -20,14 +20,18 @@ import {
   Ban,
   Wallet,
   CreditCard,
+  Shield,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { signOut } from '@/lib/actions/auth'
 import type { Tenant } from '@/types'
 
+const SUPER_ADMIN_EMAIL = 'personaldann@gmail.com'
+
 interface SidebarProps {
   tenant: Tenant
+  userEmail?: string
 }
 
 const menuItems = [
@@ -93,13 +97,15 @@ const menuItems = [
   },
 ]
 
-export function Sidebar({ tenant }: SidebarProps) {
+export function Sidebar({ tenant, userEmail }: SidebarProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
   }
+
+  const isSuperAdmin = userEmail === SUPER_ADMIN_EMAIL
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -164,6 +170,23 @@ export function Sidebar({ tenant }: SidebarProps) {
             </Link>
           )
         })}
+        
+        {/* Admin Menu - Only for Super Admin */}
+        {isSuperAdmin && (
+          <Link
+            href="/dashboard/admin"
+            onClick={() => setMobileOpen(false)}
+            className={cn(
+              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all mt-4 border-t border-white/10 pt-4',
+              pathname === '/dashboard/admin'
+                ? 'bg-gradient-to-r from-violet-500/20 to-pink-500/20 text-white'
+                : 'text-violet-400 hover:text-white hover:bg-white/5'
+            )}
+          >
+            <Shield className="w-5 h-5" />
+            Painel Admin
+          </Link>
+        )}
       </nav>
 
       {/* Sign Out */}

@@ -36,7 +36,7 @@ export default async function DashboardLayout({
 
     return (
       <div className="min-h-screen bg-gray-50">
-        <Sidebar tenant={tenant} />
+        <Sidebar tenant={tenant} userEmail={(user as any).email} />
         <div className="lg:pl-64">
           <Header user={user} />
           <main className="p-4 md:p-6">
