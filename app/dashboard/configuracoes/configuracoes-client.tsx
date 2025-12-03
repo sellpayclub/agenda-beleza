@@ -397,28 +397,42 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
 
                 <Separator />
 
-                <FeatureGate feature={FEATURES.CUSTOM_DOMAIN}>
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Domínio Personalizado</h3>
-                    <div className="space-y-2">
-                      <Label htmlFor="custom_domain">Seu Domínio</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id="custom_domain"
-                          value={profileData.custom_domain}
-                          onChange={(e) =>
-                            setProfileData({ ...profileData, custom_domain: e.target.value })
-                          }
-                          placeholder="seudominio.com.br"
-                        />
-                        <Globe className="w-4 h-4 text-gray-400" />
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Domínio Personalizado</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="custom_domain">Seu Domínio</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="custom_domain"
+                        value={profileData.custom_domain}
+                        onChange={(e) =>
+                          setProfileData({ ...profileData, custom_domain: e.target.value })
+                        }
+                        placeholder="seudominio.com.br"
+                        disabled={!hasFeature((tenant as any)?.subscription_plan, FEATURES.CUSTOM_DOMAIN)}
+                      />
+                      <Globe className="w-4 h-4 text-gray-400" />
+                    </div>
+                    {!hasFeature((tenant as any)?.subscription_plan, FEATURES.CUSTOM_DOMAIN) ? (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs text-amber-800">
+                          <strong>Domínio personalizado disponível apenas no Plano Completo.</strong> Faça upgrade para usar seu próprio domínio.
+                        </p>
                       </div>
+                    ) : (
                       <p className="text-xs text-gray-500">
                         Configure o DNS do seu domínio apontando para este sistema. Entre em contato com o suporte para mais informações.
                       </p>
-                    </div>
+                    )}
+                    {!profileData.custom_domain && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-xs text-blue-800">
+                          <strong>Domínio padrão:</strong> {typeof window !== 'undefined' ? window.location.origin : ''}/b/{tenant.slug}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                </FeatureGate>
+                </div>
 
                 <Separator />
 

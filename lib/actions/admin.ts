@@ -125,7 +125,8 @@ export async function getTenantDetails(tenantId: string) {
 export async function updateTenantSubscription(
   tenantId: string,
   status: 'trial' | 'active' | 'cancelled' | 'expired',
-  expiresAt?: string
+  expiresAt?: string,
+  plan?: string
 ) {
   const isAdmin = await isSuperAdmin()
   if (!isAdmin) return { error: 'Não autorizado' }
@@ -139,6 +140,10 @@ export async function updateTenantSubscription(
 
   if (expiresAt) {
     updateData.subscription_expires_at = expiresAt
+  }
+
+  if (plan) {
+    updateData.subscription_plan = plan
   }
 
   const { error } = await supabase

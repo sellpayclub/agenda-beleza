@@ -90,6 +90,7 @@ interface Tenant {
   email: string | null
   phone: string | null
   subscription_status: string
+  subscription_plan: string | null
   subscription_expires_at: string | null
   created_at: string
   logo_url: string | null
@@ -139,6 +140,7 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
   const [statusTenant, setStatusTenant] = useState<Tenant | null>(null)
   const [newStatus, setNewStatus] = useState('')
+  const [newPlan, setNewPlan] = useState('')
   
   // Delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -187,6 +189,7 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
   const handleStatusClick = (tenant: Tenant) => {
     setStatusTenant(tenant)
     setNewStatus(tenant.subscription_status)
+    setNewPlan(tenant.subscription_plan || 'trial')
     setStatusDialogOpen(true)
   }
 
@@ -195,15 +198,17 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
 
     const result = await updateTenantSubscription(
       statusTenant.id, 
-      newStatus as 'trial' | 'active' | 'cancelled' | 'expired'
+      newStatus as 'trial' | 'active' | 'cancelled' | 'expired',
+      undefined,
+      newPlan
     )
     if (result.error) {
       toast.error(result.error)
     } else {
-      toast.success('Status atualizado!')
+      toast.success('Status e plano atualizados!')
       setTenants(tenants.map(t => 
         t.id === statusTenant.id 
-          ? { ...t, subscription_status: newStatus } 
+          ? { ...t, subscription_status: newStatus, subscription_plan: newPlan } 
           : t
       ))
       setStatusDialogOpen(false)
@@ -393,10 +398,19 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
                         </TableCell>
                         <TableCell>{tenant.email || '-'}</TableCell>
                         <TableCell>
-                          <Badge className={`${status.color} gap-1`}>
-                            {status.icon}
-                            {status.label}
-                          </Badge>
+                          <div className="flex flex-col gap-1">
+                            <Badge className={`${status.color} gap-1 w-fit`}>
+                              {status.icon}
+                              {status.label}
+                            </Badge>
+                            {tenant.subscription_plan && (
+                              <Badge variant="outline" className="w-fit text-xs">
+                                {tenant.subscription_plan === 'start' ? 'Plano Start' : 
+                                 tenant.subscription_plan === 'completo' ? 'Plano Completo' : 
+                                 'Trial'}
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           {format(parseISO(tenant.created_at), "dd/MM/yyyy", { locale: ptBR })}
@@ -503,23 +517,39 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Alterar Status da Assinatura</DialogTitle>
+            <DialogTitle>Alterar Assinatura</DialogTitle>
             <DialogDescription>
-              Selecione o novo status para {statusTenant?.name}
+              Atualize o status e plano para {statusTenant?.name}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <Select value={newStatus} onValueChange={setNewStatus}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="trial">Trial</SelectItem>
-                <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
-                <SelectItem value="expired">Expirado</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <Label>Status da Assinatura</Label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="trial">Trial</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                  <SelectItem value="expired">Expirado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Plano</Label>
+              <Select value={newPlan} onValueChange={setNewPlan}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="trial">Trial</SelectItem>
+                  <SelectItem value="start">Plano Start (R$ 9,90)</SelectItem>
+                  <SelectItem value="completo">Plano Completo (R$ 19,90)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
