@@ -69,8 +69,24 @@ const EVENTS = {
   REFUND_REQUESTED: 'Refund_Requested',
 }
 
+// Token de validação da LastLink
+const LASTLINK_TOKEN = 'f3fb63d1240846d6b1a7485ec6a47e26'
+
 export async function POST(request: Request) {
   try {
+    // Validar token
+    const authHeader = request.headers.get('authorization')
+    const tokenHeader = request.headers.get('x-token') || request.headers.get('token')
+    const providedToken = authHeader?.replace('Bearer ', '') || tokenHeader
+
+    if (!providedToken || providedToken !== LASTLINK_TOKEN) {
+      console.log('Invalid or missing token in webhook request')
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Unauthorized' 
+      }, { status: 401 })
+    }
+
     const payload: LastlinkWebhookPayload = await request.json()
     
     console.log('=== LASTLINK WEBHOOK RECEIVED ===')

@@ -118,7 +118,7 @@ export default function LandingPage() {
     {
       name: 'Mariana Silva',
       business: 'Studio Mariana Silva - SP',
-      text: 'Desde que comecei a usar o Minha Agenda Bio, minhas faltas reduziram drasticamente e consigo atender muito mais clientes. A organização está impecável!',
+      text: 'Desde que comecei a usar o Agendify, minhas faltas reduziram drasticamente e consigo atender muito mais clientes. A organização está impecável!',
       rating: 5,
     },
     {
@@ -170,7 +170,15 @@ export default function LandingPage() {
     },
   ]
 
-  const planFeatures = [
+  const planFeaturesStart = [
+    { icon: Calendar, label: 'Agendamentos ilimitados' },
+    { icon: Users, label: 'Gestão completa de clientes' },
+    { icon: MessageSquare, label: 'Notificações WhatsApp automáticas' },
+    { icon: Bell, label: 'Notificações por Email automáticas' },
+    { icon: Clock, label: 'Lembretes automáticos (24h e 1h antes)' },
+  ]
+
+  const planFeaturesCompleto = [
     { icon: Calendar, label: 'Agendamentos ilimitados' },
     { icon: Users, label: 'Clientes ilimitados' },
     { icon: UserCheck, label: 'Funcionários ilimitados' },
@@ -219,10 +227,47 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-white" />
+              {/* Logo Agendify */}
+              <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center overflow-hidden">
+                {/* Calendário com checkmark */}
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="absolute"
+                >
+                  {/* Calendário base */}
+                  <rect
+                    x="2"
+                    y="4"
+                    width="16"
+                    height="14"
+                    rx="2"
+                    fill="url(#calendarGradient)"
+                  />
+                  {/* Tabs do calendário */}
+                  <rect x="4" y="2" width="3" height="2" rx="1" fill="url(#calendarGradient)" />
+                  <rect x="9" y="2" width="3" height="2" rx="1" fill="url(#calendarGradient)" />
+                  {/* Checkmark azul escuro */}
+                  <path
+                    d="M6 10L8.5 12.5L14 7"
+                    stroke="#1e3a8a"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                  <defs>
+                    <linearGradient id="calendarGradient" x1="0" y1="0" x2="0" y2="20">
+                      <stop offset="0%" stopColor="#8b5cf6" />
+                      <stop offset="100%" stopColor="#ec4899" />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </div>
-              <span className="font-bold text-white text-lg">Minha Agenda Bio</span>
+              <span className="font-bold text-white text-lg">Agendify</span>
             </div>
             <div className="flex items-center gap-4">
               <Link href="/login">
@@ -425,7 +470,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Antes vs. Depois do Minha Agenda Bio
+              Antes vs. Depois do Agendify
             </h2>
             <p className="text-gray-400 text-lg">
               Veja a transformação que você terá no seu negócio
@@ -495,45 +540,98 @@ export default function LandingPage() {
 
       {/* Pricing - Enhanced */}
       <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Plano Único. Sem Complicação.
+              Escolha o Plano Ideal Para Você
             </h2>
             <p className="text-gray-400 text-lg mb-2">
-              Todos os recursos que você precisa por um preço que cabe no bolso
+              Planos flexíveis que se adaptam ao tamanho do seu negócio
             </p>
             <p className="text-white text-xl font-semibold">
-              Menos que um cafézinho por dia ☕
+              Comece grátis e cancele quando quiser ☕
             </p>
           </div>
 
-          <div className="relative max-w-2xl mx-auto">
-            <div className="relative p-8 md:p-12 rounded-2xl bg-gradient-to-b from-violet-500/20 to-pink-500/20 border-2 border-violet-500/50 shadow-2xl shadow-violet-500/20">
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Plano Start */}
+            <div className="relative p-8 rounded-2xl bg-gradient-to-b from-violet-500/20 to-pink-500/20 border-2 border-violet-500/50 shadow-2xl shadow-violet-500/20">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium shadow-lg">
-                🔥 Oferta Limitada - Garanta Esse Preço!
+                ⭐ Mais Popular
               </div>
               
               <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-white mb-4">Plano Start</h3>
                 <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-2xl text-gray-400 line-through">R$ 29,90</span>
-                  <span className="text-6xl font-bold text-white">R$ 9,90</span>
+                  <span className="text-5xl font-bold text-white">R$ 9,90</span>
                   <span className="text-xl text-gray-400">/mês</span>
                 </div>
-                <p className="text-emerald-400 font-semibold text-lg mb-3">
-                  💎 Você economiza R$ 20 por mês!
-                </p>
                 <p className="text-gray-300 text-lg mb-2">
                   <Gift className="w-5 h-5 inline mr-2" />
-                  14 dias grátis para testar tudo
+                  14 dias grátis para testar
                 </p>
                 <p className="text-gray-400 text-sm">
-                  Cancele quando quiser · Sem compromisso · Sem taxas escondidas
+                  Agendamento, notificações e clientes
                 </p>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-3 mb-8">
-                {planFeatures.map((feature, index) => (
+              <div className="space-y-3 mb-8">
+                {planFeaturesStart.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-emerald-400" />
+                    </div>
+                    <span className="text-gray-300 text-sm">{feature.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center">
+                <a 
+                  href="https://lastlink.com/p/C80E6C97B/checkout-payment/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-lg px-8 py-6 shadow-lg shadow-violet-500/25 mb-3"
+                  >
+                    🚀 Assinar Plano Start
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </a>
+                <p className="text-gray-400 text-xs">
+                  ✅ Pagamento seguro • Ative em 2 minutos
+                </p>
+              </div>
+            </div>
+
+            {/* Plano Completo */}
+            <div className="relative p-8 rounded-2xl bg-gradient-to-b from-pink-500/20 to-violet-500/20 border-2 border-pink-500/50 shadow-2xl shadow-pink-500/20">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 text-white text-sm font-medium shadow-lg">
+                🔥 Mais Completo
+              </div>
+              
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-white mb-4">Plano Completo</h3>
+                <div className="flex items-baseline justify-center gap-2 mb-2">
+                  <span className="text-5xl font-bold text-white">R$ 19,90</span>
+                  <span className="text-xl text-gray-400">/mês</span>
+                </div>
+                <p className="text-emerald-400 font-semibold text-lg mb-3">
+                  💎 Todos os recursos premium
+                </p>
+                <p className="text-gray-300 text-lg mb-2">
+                  <Gift className="w-5 h-5 inline mr-2" />
+                  14 dias grátis para testar
+                </p>
+                <p className="text-gray-400 text-sm">
+                  Para negócios que querem o máximo
+                </p>
+              </div>
+
+              <div className="space-y-3 mb-8">
+                {planFeaturesCompleto.map((feature, index) => (
                   <div key={index} className="flex items-start gap-3">
                     <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="w-3 h-3 text-emerald-400" />
@@ -549,24 +647,28 @@ export default function LandingPage() {
                   <div>
                     <p className="text-white font-semibold mb-1">Garantia de 14 Dias</p>
                     <p className="text-gray-400 text-sm">
-                      Teste sem compromisso. Se não gostar, não paga nada. Simples assim.
+                      Teste sem compromisso. Se não gostar, não paga nada.
                     </p>
                   </div>
                 </div>
               </div>
 
               <div className="text-center">
-                <Link href="/register">
+                <a 
+                  href="https://lastlink.com/p/C449B720D/checkout-payment/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Button
                     size="lg"
-                    className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-lg px-12 py-7 shadow-lg shadow-violet-500/25 mb-3"
+                    className="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-lg px-8 py-6 shadow-lg shadow-pink-500/25 mb-3"
                   >
-                    🚀 Começar Grátis Agora
+                    🚀 Assinar Plano Completo
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                </Link>
+                </a>
                 <p className="text-gray-400 text-xs">
-                  ✅ Não é necessário cartão de crédito • Ative em 2 minutos
+                  ✅ Pagamento seguro • Ative em 2 minutos
                 </p>
               </div>
             </div>
@@ -678,10 +780,43 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-white" />
+              <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center overflow-hidden">
+                {/* Logo Agendify */}
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="absolute"
+                >
+                  <rect
+                    x="2"
+                    y="4"
+                    width="16"
+                    height="14"
+                    rx="2"
+                    fill="url(#calendarGradientFooter)"
+                  />
+                  <rect x="4" y="2" width="3" height="2" rx="1" fill="url(#calendarGradientFooter)" />
+                  <rect x="9" y="2" width="3" height="2" rx="1" fill="url(#calendarGradientFooter)" />
+                  <path
+                    d="M6 10L8.5 12.5L14 7"
+                    stroke="#1e3a8a"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                  <defs>
+                    <linearGradient id="calendarGradientFooter" x1="0" y1="0" x2="0" y2="20">
+                      <stop offset="0%" stopColor="#8b5cf6" />
+                      <stop offset="100%" stopColor="#ec4899" />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </div>
-              <span className="font-semibold text-white text-lg">Minha Agenda Bio</span>
+              <span className="font-semibold text-white text-lg">Agendify</span>
             </div>
             
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
@@ -694,7 +829,7 @@ export default function LandingPage() {
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/5">
             <p className="text-gray-500 text-sm text-center md:text-left">
-              © 2024 Minha Agenda Bio. Todos os direitos reservados.
+              © 2024 Agendify. Todos os direitos reservados.
             </p>
             
             <div className="flex items-center gap-4 text-sm text-gray-400">
