@@ -137,8 +137,8 @@ export default function LandingPage() {
 
   const faqs = [
     {
-      question: 'Como funciona o período de teste gratuito?',
-      answer: 'Você tem 14 dias para testar todas as funcionalidades sem pagar nada. Não é necessário cartão de crédito para começar. Após o período, você pode assinar por apenas R$ 9,90/mês.',
+      question: 'Como funciona a assinatura?',
+      answer: 'Você pode escolher entre o Plano Start (R$ 9,90/mês) com recursos básicos ou o Plano Completo (R$ 19,90/mês) com todos os recursos. Assine diretamente pelo link de pagamento.',
     },
     {
       question: 'Posso cancelar a qualquer momento?',
@@ -277,7 +277,7 @@ export default function LandingPage() {
               </Link>
               <Link href="/register">
                 <Button className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600">
-                  Começar Grátis
+                  Começar Agora
                 </Button>
               </Link>
             </div>
@@ -308,33 +308,14 @@ export default function LandingPage() {
             <span className="block mt-2 text-white font-semibold">Reduza faltas em até 70% e economize 5+ horas por semana</span>
           </p>
 
-          <div className="flex items-center justify-center gap-6 mb-10 text-sm text-gray-300">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-400" />
-              <span>14 dias grátis</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-400" />
-              <span>Sem cartão de crédito</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-400" />
-              <span>Cancele quando quiser</span>
-            </div>
-          </div>
-          
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register">
               <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-lg px-8 py-6 shadow-lg shadow-violet-500/25">
-                Começar Grátis Agora
+                Começar Agora
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <p className="text-xs text-gray-500 sm:hidden">Apenas R$ 9,90/mês depois do teste</p>
           </div>
-          <p className="text-sm text-gray-400 mt-4 hidden sm:block">
-            Apenas <span className="text-white font-bold">R$ 9,90/mês</span> depois do período gratuito
-          </p>
         </div>
       </section>
 
@@ -395,7 +376,7 @@ export default function LandingPage() {
             </p>
             <Link href="/register">
               <Button size="lg" className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600">
-                Começar Grátis Agora
+                Começar Agora
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
@@ -549,7 +530,7 @@ export default function LandingPage() {
               Planos flexíveis que se adaptam ao tamanho do seu negócio
             </p>
             <p className="text-white text-xl font-semibold">
-              Comece grátis e cancele quando quiser ☕
+              Planos flexíveis para o seu negócio ☕
             </p>
           </div>
 
@@ -566,10 +547,6 @@ export default function LandingPage() {
                   <span className="text-5xl font-bold text-white">R$ 9,90</span>
                   <span className="text-xl text-gray-400">/mês</span>
                 </div>
-                <p className="text-gray-300 text-lg mb-2">
-                  <Gift className="w-5 h-5 inline mr-2" />
-                  14 dias grátis para testar
-                </p>
                 <p className="text-gray-400 text-sm">
                   Agendamento, notificações e clientes
                 </p>
@@ -621,10 +598,6 @@ export default function LandingPage() {
                 <p className="text-emerald-400 font-semibold text-lg mb-3">
                   💎 Todos os recursos premium
                 </p>
-                <p className="text-gray-300 text-lg mb-2">
-                  <Gift className="w-5 h-5 inline mr-2" />
-                  14 dias grátis para testar
-                </p>
                 <p className="text-gray-400 text-sm">
                   Para negócios que querem o máximo
                 </p>
@@ -641,17 +614,6 @@ export default function LandingPage() {
                 ))}
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4 mb-6 border border-white/10">
-                <div className="flex items-start gap-3">
-                  <Shield className="w-6 h-6 text-emerald-400 flex-shrink-0" />
-                  <div>
-                    <p className="text-white font-semibold mb-1">Garantia de 14 Dias</p>
-                    <p className="text-gray-400 text-sm">
-                      Teste sem compromisso. Se não gostar, não paga nada.
-                    </p>
-                  </div>
-                </div>
-              </div>
 
               <div className="text-center">
                 <a 
@@ -679,14 +641,6 @@ export default function LandingPage() {
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
                 <span>Sem taxa de setup</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>Sem compromisso</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>Cancele quando quiser</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
@@ -745,25 +699,10 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
               <Link href="/register">
                 <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-xl px-12 py-7 shadow-lg shadow-violet-500/25">
-                  🎁 Começar Meus 14 Dias Grátis
+                  🚀 Começar Agora
                   <ArrowRight className="ml-2 h-6 w-6" />
                 </Button>
               </Link>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-gray-300">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>Sem cartão de crédito</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>Apenas R$ 9,90/mês depois</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>Cancele quando quiser</span>
-              </div>
             </div>
 
             <div className="mt-8 pt-8 border-t border-white/10">
