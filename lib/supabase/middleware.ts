@@ -36,34 +36,42 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Verificar domínio customizado
-  const hostname = request.headers.get('host') || ''
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
-  const baseHost = baseUrl.replace('https://', '').replace('http://', '').split('/')[0]
-  
-  const isCustomDomain = hostname && 
-                         !hostname.includes('localhost') && 
-                         !hostname.includes('127.0.0.1') &&
-                         !hostname.includes('vercel.app') &&
-                         hostname !== baseHost
-  
-  if (isCustomDomain) {
-    // Buscar tenant pelo domínio customizado
-    const adminSupabase = createAdminClient()
-    const { data: tenant } = await adminSupabase
-      .from('tenants')
-      .select('slug')
-      .eq('custom_domain', hostname)
-      .single()
+  // Verificar domínio customizado (apenas em runtime, não durante build)
+  try {
+    const hostname = request.headers.get('host') || ''
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
+    const baseHost = baseUrl.replace('https://', '').replace('http://', '').split('/')[0]
     
-    if (tenant) {
-      // Se está acessando a raiz ou /b/, redirecionar para a página pública do tenant
-      if (request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/b/')) {
-        const url = request.nextUrl.clone()
-        url.pathname = `/b/${tenant.slug}`
-        return NextResponse.redirect(url)
+    const isCustomDomain = hostname && 
+                           !hostname.includes('localhost') && 
+                           !hostname.includes('127.0.0.1') &&
+                           !hostname.includes('vercel.app') &&
+                           hostname !== baseHost
+    
+    if (isCustomDomain) {
+      // Buscar tenant pelo domínio customizado
+      const adminSupabase = createAdminClient()
+      const { data: tenant, error } = await adminSupabase
+        .from('tenants')
+        .select('slug')
+        .eq('custom_domain', hostname)
+        .maybeSingle()
+      
+      if (!error && tenant) {
+        const tenantSlug = (tenant as any)?.slug
+        if (tenantSlug) {
+          // Se está acessando a raiz ou /b/, redirecionar para a página pública do tenant
+          if (request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/b/')) {
+            const url = request.nextUrl.clone()
+            url.pathname = `/b/${tenantSlug}`
+            return NextResponse.redirect(url)
+          }
+        }
       }
     }
+  } catch (error) {
+    // Ignorar erros durante build ou se não houver conexão com banco
+    console.error('Error checking custom domain:', error)
   }
 
   // Protected routes

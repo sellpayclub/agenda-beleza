@@ -34,6 +34,7 @@ export function VideoDemo() {
   return (
     <div className="mb-10 flex justify-center">
       <div className="w-full max-w-md">
+        {/* @ts-ignore - Custom element from external script */}
         <vturb-smartplayer 
           id="vid-69304bc7bf1c3c5d0f93ef8a" 
           style={{ display: 'block', margin: '0 auto', width: '100%', maxWidth: '400px' }}
