@@ -1,5 +1,8 @@
 'use client'
 
+import { FeatureGate } from '@/components/dashboard/feature-gate'
+import { FEATURES } from '@/lib/utils/plan-features'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -56,7 +59,8 @@ export function AnalyticsClient({
   noShowRate,
 }: AnalyticsClientProps) {
   return (
-    <div className="space-y-6">
+    <FeatureGate feature={FEATURES.ANALYTICS}>
+      <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
         <p className="text-gray-500">Análise detalhada do seu negócio</p>
@@ -274,7 +278,8 @@ export function AnalyticsClient({
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </FeatureGate>
   )
 }
 

@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { FeatureGate } from '@/components/dashboard/feature-gate'
+import { FEATURES } from '@/lib/utils/plan-features'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -208,7 +210,8 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
   }
 
   return (
-    <div className="space-y-6">
+    <FeatureGate feature={FEATURES.FINANCIAL}>
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Financeiro</h1>
@@ -388,7 +391,8 @@ export function FinanceiroClient({ initialAppointments }: FinanceiroClientProps)
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </FeatureGate>
   )
 }
 

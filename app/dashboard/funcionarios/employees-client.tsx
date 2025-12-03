@@ -29,6 +29,9 @@ import { createEmployee, updateEmployee, deleteEmployee, toggleEmployeeStatus } 
 import { getDayName } from '@/lib/utils/format'
 import { toast } from 'sonner'
 import type { Employee, Service, WorkingHours } from '@/types'
+import { useTenant } from '@/hooks/use-tenant'
+import { hasFeature, FEATURES } from '@/lib/utils/plan-features'
+import { FeatureGate } from '@/components/dashboard/feature-gate'
 
 interface EmployeesClientProps {
   initialEmployees: Employee[]
@@ -162,8 +165,9 @@ export function EmployeesClient({ initialEmployees, services }: EmployeesClientP
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <FeatureGate feature={FEATURES.EMPLOYEES}>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Funcionários</h1>
           <p className="text-gray-500">Gerencie sua equipe</p>
@@ -421,7 +425,8 @@ export function EmployeesClient({ initialEmployees, services }: EmployeesClientP
           })}
         </div>
       )}
-    </div>
+      </div>
+    </FeatureGate>
   )
 }
 

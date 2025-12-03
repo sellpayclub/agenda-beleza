@@ -53,10 +53,11 @@ async function sendWhatsAppMessage(phone: string, message: string, instanceName?
   }
 }
 
+import { getManageLink as getManageLinkUtil, getBookingLink } from '@/lib/utils/domain'
+
 // Get booking management link
 function getManageLink(tenant: Tenant, appointmentId: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  return `${baseUrl}/b/${tenant.slug}/manage/${appointmentId}`
+  return getManageLinkUtil(tenant, appointmentId)
 }
 
 // WhatsApp message templates
@@ -146,7 +147,7 @@ function getCancellationWhatsAppMessage(details: AppointmentDetails): string {
   const { appointment, client, service, tenant } = details
   const appointmentDate = format(new Date(appointment.start_time), "dd/MM/yyyy", { locale: ptBR })
   const appointmentTime = format(new Date(appointment.start_time), 'HH:mm')
-  const bookingLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/b/${tenant.slug}`
+  const bookingLink = getBookingLink(tenant)
 
   return `❌ *Agendamento Cancelado*
 

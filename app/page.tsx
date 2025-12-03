@@ -6,6 +6,7 @@ import {
   Star, ChevronDown, AlertCircle, Gift, Target, Briefcase, UserCheck, Bell,
   CreditCard, FileText, Settings, Globe, CheckCircle, XCircle
 } from 'lucide-react'
+import { VideoDemo } from '@/components/video-demo'
 
 export default function LandingPage() {
   const allFeatures = [
@@ -303,10 +304,13 @@ export default function LandingPage() {
             </span>
           </h1>
           
-          <p className="text-lg sm:text-xl text-gray-400 mb-4 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-3xl mx-auto">
             Sistema completo de agendamento online para salões, barbearias, spas e clínicas de estética. 
             <span className="block mt-2 text-white font-semibold">Reduza faltas em até 70% e economize 5+ horas por semana</span>
           </p>
+
+          {/* Video Demo */}
+          <VideoDemo />
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register">

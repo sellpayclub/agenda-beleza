@@ -37,11 +37,13 @@ import {
   Clock,
   Star,
   XCircle,
+  ArrowRight,
 } from 'lucide-react'
 import { format, addDays, parseISO, isPast } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import type { Tenant } from '@/types'
+import { getPlanName, canUpgrade, PLAN_START, PLAN_COMPLETO } from '@/lib/utils/plan-features'
 
 interface AssinaturaClientProps {
   tenant: Tenant | null
@@ -64,11 +66,14 @@ export function AssinaturaClient({ tenant }: AssinaturaClientProps) {
   const [loading, setLoading] = useState(false)
 
   const subscriptionStatus = (tenant as any)?.subscription_status || 'trial'
+  const subscriptionPlan = (tenant as any)?.subscription_plan || 'trial'
   const expiresAt = (tenant as any)?.subscription_expires_at
   const isExpired = expiresAt ? isPast(parseISO(expiresAt)) : false
   const isActive = subscriptionStatus === 'active' && !isExpired
   const isTrial = subscriptionStatus === 'trial'
   const isCancelled = subscriptionStatus === 'cancelled'
+  const currentPlanName = getPlanName(subscriptionPlan)
+  const showUpgrade = canUpgrade(subscriptionPlan) && isActive
 
   const getStatusBadge = () => {
     if (isActive) {
@@ -110,9 +115,14 @@ export function AssinaturaClient({ tenant }: AssinaturaClientProps) {
   }
 
   const handleSubscribe = () => {
-    // Por enquanto, apenas mostrar instruções de pagamento manual
-    toast.info('Entre em contato pelo WhatsApp para ativar sua assinatura!')
-    window.open(`https://wa.me/5511999999999?text=Olá! Quero assinar o plano mensal de R$ 9,90. Meu negócio: ${tenant?.name}`, '_blank')
+    // Redirecionar para o link correto baseado no plano
+    if (subscriptionPlan === PLAN_START || !subscriptionPlan || subscriptionPlan === 'trial') {
+      // Se não tem plano ou tem Start, oferecer Start
+      window.open('https://lastlink.com/p/C80E6C97B/checkout-payment/', '_blank')
+    } else {
+      // Se já tem Completo, renovar
+      window.open('https://lastlink.com/p/C449B720D/checkout-payment/', '_blank')
+    }
   }
 
   return (
@@ -132,8 +142,12 @@ export function AssinaturaClient({ tenant }: AssinaturaClientProps) {
                 <CreditCard className="w-6 h-6 text-violet-600" />
               </div>
               <div>
-                <CardTitle>Plano Profissional</CardTitle>
-                <CardDescription>Acesso completo a todas as funcionalidades</CardDescription>
+                <CardTitle>{currentPlanName}</CardTitle>
+                <CardDescription>
+                  {subscriptionPlan === PLAN_COMPLETO 
+                    ? 'Acesso completo a todas as funcionalidades'
+                    : 'Acesso às funcionalidades básicas'}
+                </CardDescription>
               </div>
             </div>
             {getStatusBadge()}
@@ -239,6 +253,74 @@ export function AssinaturaClient({ tenant }: AssinaturaClientProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Upgrade Card */}
+      {showUpgrade && (
+        <Card className="border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-violet-50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl">Faça Upgrade para Plano Completo</CardTitle>
+                <CardDescription>
+                  Desbloqueie todos os recursos premium por apenas R$ 19,90/mês
+                </CardDescription>
+              </div>
+              <Sparkles className="w-8 h-8 text-pink-600" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-bold text-gray-900">R$ 19,90</span>
+              <span className="text-gray-500">/mês</span>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="font-semibold text-gray-900">Recursos adicionais que você terá:</p>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Funcionários ilimitados</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Dashboard e Analytics completos</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Controle financeiro total</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Relatórios exportáveis (Excel/PDF)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>White-label e personalização completa</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Domínio próprio</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Configurações avançadas</span>
+                </li>
+              </ul>
+            </div>
+
+            <a 
+              href="https://lastlink.com/p/C449B720D/checkout-payment/" 
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button className="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600">
+                Fazer Upgrade Agora
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </a>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Features */}
       <Card>

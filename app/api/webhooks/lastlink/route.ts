@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { addMonths, addDays } from 'date-fns'
+import { PLAN_START, PLAN_COMPLETO } from '@/lib/utils/plan-features'
 
 // Tipos para os eventos da Lastlink
 interface LastlinkWebhookPayload {
@@ -71,6 +72,27 @@ const EVENTS = {
 
 // Token de validação da LastLink
 const LASTLINK_TOKEN = 'f3fb63d1240846d6b1a7485ec6a47e26'
+
+/**
+ * Identifica o plano baseado no nome do produto da LastLink
+ */
+function identifyPlan(productName: string | undefined): string | null {
+  if (!productName) return null
+  
+  const name = productName.toLowerCase()
+  
+  // Verificar se contém "start" ou "plano start"
+  if (name.includes('start') || name.includes('plano start')) {
+    return PLAN_START
+  }
+  
+  // Verificar se contém "completo" ou "plano completo"
+  if (name.includes('completo') || name.includes('plano completo')) {
+    return PLAN_COMPLETO
+  }
+  
+  return null
+}
 
 export async function POST(request: Request) {
   try {
@@ -146,6 +168,13 @@ export async function POST(request: Request) {
       })
     }
 
+    // Identificar plano do produto comprado
+    const productName = payload.Data?.Products?.[0]?.Name
+    const identifiedPlan = identifyPlan(productName)
+    
+    // Se não identificou pelo nome, manter plano atual ou usar 'start' como padrão
+    const newPlan = identifiedPlan || tenant.subscription_plan || PLAN_START
+
     // Processar evento
     let updateData: any = {}
     let message = ''
@@ -153,24 +182,25 @@ export async function POST(request: Request) {
     switch (payload.Event) {
       case EVENTS.PURCHASE_CONFIRMED:
       case EVENTS.ACCESS_STARTED:
-        // Ativar assinatura
+        // Ativar assinatura com plano identificado
         updateData = {
           subscription_status: 'active',
           subscription_expires_at: addMonths(new Date(), 1).toISOString(),
-          subscription_plan: 'monthly',
+          subscription_plan: newPlan,
           updated_at: new Date().toISOString(),
         }
-        message = 'Subscription activated'
+        message = `Subscription activated with plan: ${newPlan}`
         break
 
       case EVENTS.RECURRENT_PAYMENT:
-        // Renovar assinatura
+        // Renovar assinatura (manter plano atual ou atualizar se identificado novo)
         const currentExpires = tenant.subscription_expires_at 
           ? new Date(tenant.subscription_expires_at) 
           : new Date()
         updateData = {
           subscription_status: 'active',
           subscription_expires_at: addMonths(currentExpires, 1).toISOString(),
+          subscription_plan: identifiedPlan || tenant.subscription_plan || PLAN_START,
           updated_at: new Date().toISOString(),
         }
         message = 'Subscription renewed'

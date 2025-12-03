@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { getCurrentUserAndTenant } from '@/lib/actions/auth'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Header } from '@/components/dashboard/header'
+import { Watermark } from '@/components/dashboard/watermark'
+import { isSubscriptionActive } from '@/lib/middleware/subscription-check'
 
 export default async function DashboardLayout({
   children,
@@ -34,6 +36,9 @@ export default async function DashboardLayout({
         : (tenantData as any).tenant_settings,
     }
 
+    // Verificar assinatura ativa (exceto na página de assinatura)
+    // Isso será verificado no componente filho se necessário
+    
     return (
       <div className="min-h-screen bg-gray-50">
         <Sidebar tenant={tenant} userEmail={(user as any).email} />
@@ -43,6 +48,7 @@ export default async function DashboardLayout({
             {children}
           </main>
         </div>
+        <Watermark />
       </div>
     )
   } catch (error: any) {

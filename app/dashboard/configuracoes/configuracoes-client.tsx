@@ -11,8 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { updateTenantProfile, updateTenantSettings } from '@/lib/actions/tenant'
 import { toast } from 'sonner'
-import { Loader2, Copy, ExternalLink, Palette, Settings, Bell, Link as LinkIcon, Upload, X, Image as ImageIcon } from 'lucide-react'
+import { Loader2, Copy, ExternalLink, Palette, Settings, Bell, Link as LinkIcon, Upload, X, Image as ImageIcon, Globe } from 'lucide-react'
 import type { Tenant, TenantSettingsRow } from '@/types'
+import { useTenant } from '@/hooks/use-tenant'
+import { hasFeature, FEATURES } from '@/lib/utils/plan-features'
+import { FeatureGate } from '@/components/dashboard/feature-gate'
+import { getBookingLink } from '@/lib/utils/domain'
 
 interface ConfiguracoesClientProps {
   tenant: Tenant & { tenant_settings: TenantSettingsRow[] | TenantSettingsRow | null }
@@ -39,6 +43,7 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     facebook: tenant.facebook || '',
     primary_color: tenant.primary_color,
     secondary_color: tenant.secondary_color,
+    custom_domain: (tenant as any).custom_domain || '',
   })
 
   const [settingsData, setSettingsData] = useState({
@@ -50,7 +55,9 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     cancellation_policy: settings?.cancellation_policy || '',
   })
 
-  const publicUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/b/${tenant.slug}`
+  const publicUrl = typeof window !== 'undefined' 
+    ? getBookingLink(tenant)
+    : `/b/${tenant.slug}`
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(publicUrl)
@@ -387,6 +394,31 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
                     </div>
                   </div>
                 </div>
+
+                <Separator />
+
+                <FeatureGate feature={FEATURES.CUSTOM_DOMAIN}>
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Domínio Personalizado</h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="custom_domain">Seu Domínio</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="custom_domain"
+                          value={profileData.custom_domain}
+                          onChange={(e) =>
+                            setProfileData({ ...profileData, custom_domain: e.target.value })
+                          }
+                          placeholder="seudominio.com.br"
+                        />
+                        <Globe className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Configure o DNS do seu domínio apontando para este sistema. Entre em contato com o suporte para mais informações.
+                      </p>
+                    </div>
+                  </div>
+                </FeatureGate>
 
                 <Separator />
 
