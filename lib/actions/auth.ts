@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { slugify } from '@/lib/utils/format'
+import { PLAN_COMPLETO } from '@/lib/utils/plan-features'
 
 export async function signIn(formData: FormData) {
   try {
@@ -138,6 +139,8 @@ export async function signUp(formData: FormData) {
         slug: finalSlug,
         phone,
         email,
+        subscription_plan: PLAN_COMPLETO, // Plano completo por padrão
+        subscription_status: 'active', // Status ativo por padrão
       })
       .select()
       .single()
