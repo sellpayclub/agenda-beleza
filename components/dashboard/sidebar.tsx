@@ -84,6 +84,7 @@ const menuItems = [
     href: '/dashboard/whatsapp',
     icon: MessageSquare,
   },
+  // Assinatura removida - gerenciamento feito na LastLink
   {
     label: 'Configurações',
     href: '/dashboard/configuracoes',
