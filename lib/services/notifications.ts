@@ -13,23 +13,56 @@ interface AppointmentDetails {
 
 // Evolution API integration
 async function sendWhatsAppMessage(phone: string, message: string, instanceName?: string): Promise<boolean> {
+  // Validate phone number
+  if (!phone || phone.trim() === '') {
+    console.error('❌ Cannot send WhatsApp: Phone number is empty')
+    return false
+  }
+
+  // Validate message
+  if (!message || message.trim() === '') {
+    console.error('❌ Cannot send WhatsApp: Message is empty')
+    return false
+  }
+
   const evolutionUrl = process.env.EVOLUTION_API_URL
   const evolutionKey = process.env.EVOLUTION_API_KEY
   const instance = instanceName || process.env.EVOLUTION_INSTANCE_NAME
 
   if (!evolutionUrl || !evolutionKey || !instance) {
-    console.log('Evolution API not configured or instance not provided')
+    console.error('❌ Evolution API not configured:', {
+      hasUrl: !!evolutionUrl,
+      hasKey: !!evolutionKey,
+      hasInstance: !!instance,
+      providedInstance: instanceName,
+    })
     return false
   }
 
   try {
     // Format phone number (remove non-digits, add country code if needed)
     let formattedPhone = phone.replace(/\D/g, '')
+    
+    // Validate formatted phone
+    if (formattedPhone.length < 10) {
+      console.error(`❌ Invalid phone number format: ${phone} (formatted: ${formattedPhone})`)
+      return false
+    }
+
     if (!formattedPhone.startsWith('55')) {
       formattedPhone = '55' + formattedPhone
     }
 
-    const response = await fetch(`${evolutionUrl}/message/sendText/${instance}`, {
+    // Validate final phone format (should be 55 + 10-11 digits)
+    if (formattedPhone.length < 12 || formattedPhone.length > 13) {
+      console.error(`❌ Invalid phone number length: ${formattedPhone} (original: ${phone})`)
+      return false
+    }
+
+    const url = `${evolutionUrl}/message/sendText/${instance}`
+    console.log(`📤 Sending WhatsApp to ${formattedPhone} via instance ${instance}`)
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,13 +75,20 @@ async function sendWhatsAppMessage(phone: string, message: string, instanceName?
     })
 
     if (!response.ok) {
-      console.error('Failed to send WhatsApp message:', await response.text())
+      const errorText = await response.text()
+      console.error(`❌ Failed to send WhatsApp message (${response.status}):`, errorText)
       return false
     }
 
+    const responseData = await response.json().catch(() => ({}))
+    console.log(`✅ WhatsApp message sent successfully to ${formattedPhone}`)
     return true
-  } catch (error) {
-    console.error('Error sending WhatsApp message:', error)
+  } catch (error: any) {
+    console.error('❌ Error sending WhatsApp message:', {
+      error: error.message,
+      stack: error.stack,
+      phone: phone.replace(/\D/g, '').substring(0, 4) + '****', // Log parcial por segurança
+    })
     return false
   }
 }

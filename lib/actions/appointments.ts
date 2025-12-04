@@ -184,39 +184,82 @@ export async function createAppointment(data: {
 
   // Send WhatsApp notification to client (always when enabled)
   if (tenant && appointment.client && appointment.employee && appointment.service) {
-    const notificationDetails = {
-      appointment,
-      client: appointment.client,
-      employee: appointment.employee,
-      service: appointment.service,
-      tenant,
-    }
+    // Validate required data for notifications
+    if (!appointment.client.phone || appointment.client.phone.trim() === '') {
+      console.warn(`⚠️ Cannot send notification: Client ${appointment.client.id} has no phone number`)
+    } else if (!tenant.whatsapp_instance) {
+      console.warn(`⚠️ Cannot send notification: Tenant ${tenant.id} has no WhatsApp instance configured`)
+    } else {
+      const notificationDetails = {
+        appointment,
+        client: appointment.client,
+        employee: appointment.employee,
+        service: appointment.service,
+        tenant,
+      }
 
-    // Check notification preferences
-    const preferences = tenantSettings?.notification_preferences as any
-    const whatsappConfirmation = preferences?.whatsappConfirmation !== false // Default to true if not set
+      // Check notification preferences
+      const preferences = tenantSettings?.notification_preferences as any
+      const whatsappConfirmation = preferences?.whatsappConfirmation !== false // Default to true if not set
 
-    if (whatsappConfirmation) {
-      // Send appropriate message based on status
-      if (status === 'confirmed') {
-        // Send confirmation message
-        sendConfirmationWhatsApp(notificationDetails).catch(err => {
-          console.error('Error sending WhatsApp confirmation:', err)
-        })
+      if (whatsappConfirmation) {
+        // Send appropriate message based on status
+        if (status === 'confirmed') {
+          // Send confirmation message
+          console.log(`📤 Sending confirmation WhatsApp to ${appointment.client.phone} for appointment ${appointment.id}`)
+          sendConfirmationWhatsApp(notificationDetails)
+            .then((success) => {
+              if (success) {
+                console.log(`✅ Confirmation WhatsApp sent successfully for appointment ${appointment.id}`)
+              } else {
+                console.error(`❌ Failed to send confirmation WhatsApp for appointment ${appointment.id}`)
+              }
+            })
+            .catch(err => {
+              console.error(`❌ Error sending WhatsApp confirmation for appointment ${appointment.id}:`, err)
+            })
+        } else {
+          // Send pending appointment message
+          console.log(`📤 Sending pending appointment WhatsApp to ${appointment.client.phone} for appointment ${appointment.id}`)
+          sendPendingAppointmentWhatsApp(notificationDetails)
+            .then((success) => {
+              if (success) {
+                console.log(`✅ Pending appointment WhatsApp sent successfully for appointment ${appointment.id}`)
+              } else {
+                console.error(`❌ Failed to send pending appointment WhatsApp for appointment ${appointment.id}`)
+              }
+            })
+            .catch(err => {
+              console.error(`❌ Error sending WhatsApp pending notification for appointment ${appointment.id}:`, err)
+            })
+        }
       } else {
-        // Send pending appointment message
-        sendPendingAppointmentWhatsApp(notificationDetails).catch(err => {
-          console.error('Error sending WhatsApp pending notification:', err)
-        })
+        console.log(`⏭️ WhatsApp confirmation disabled for tenant ${tenant.id}`)
+      }
+
+      // Send notification to admin (tenant phone)
+      if (tenant.phone) {
+        console.log(`📤 Sending admin notification to ${tenant.phone} for new appointment ${appointment.id}`)
+        sendAdminNewAppointmentNotification(tenant.phone, notificationDetails)
+          .then((success) => {
+            if (success) {
+              console.log(`✅ Admin notification sent successfully for appointment ${appointment.id}`)
+            } else {
+              console.error(`❌ Failed to send admin notification for appointment ${appointment.id}`)
+            }
+          })
+          .catch(err => {
+            console.error(`❌ Error sending admin notification for appointment ${appointment.id}:`, err)
+          })
       }
     }
-
-    // Send notification to admin (tenant phone)
-    if (tenant.phone) {
-      sendAdminNewAppointmentNotification(tenant.phone, notificationDetails).catch(err => {
-        console.error('Error sending admin notification:', err)
-      })
-    }
+  } else {
+    console.warn(`⚠️ Cannot send notification: Missing required data for appointment ${appointment.id}`, {
+      hasTenant: !!tenant,
+      hasClient: !!appointment.client,
+      hasEmployee: !!appointment.employee,
+      hasService: !!appointment.service,
+    })
   }
 
   // Revalidate all affected paths
@@ -301,28 +344,68 @@ export async function updateAppointmentStatus(id: string, status: AppointmentSta
 
   // Send confirmation WhatsApp if status changed to confirmed
   if (status === 'confirmed' && fullAppointment.status !== 'confirmed') {
-    // Check tenant notification preferences
-    const { data: tenantSettings } = await supabase
-      .from('tenant_settings')
-      .select('notification_preferences')
-      .eq('tenant_id', user.tenant_id)
-      .single()
+    console.log(`📤 Status changed to confirmed for appointment ${id}, sending confirmation notification`)
+    
+    // Validate required data
+    if (!fullAppointment.client || !fullAppointment.client.phone || fullAppointment.client.phone.trim() === '') {
+      console.warn(`⚠️ Cannot send confirmation: Client ${fullAppointment.client_id} has no phone number`)
+    } else if (!fullAppointment.tenant || !fullAppointment.tenant.whatsapp_instance) {
+      console.warn(`⚠️ Cannot send confirmation: Tenant ${user.tenant_id} has no WhatsApp instance configured`)
+    } else if (!fullAppointment.employee || !fullAppointment.service) {
+      console.warn(`⚠️ Cannot send confirmation: Missing employee or service data for appointment ${id}`)
+    } else {
+      // Check tenant notification preferences
+      const { data: tenantSettings } = await supabase
+        .from('tenant_settings')
+        .select('notification_preferences')
+        .eq('tenant_id', user.tenant_id)
+        .single()
 
-    const preferences = tenantSettings?.notification_preferences as any
-    const whatsappConfirmation = preferences?.whatsappConfirmation !== false // Default to true if not set
+      const preferences = tenantSettings?.notification_preferences as any
+      const whatsappConfirmation = preferences?.whatsappConfirmation !== false // Default to true if not set
 
-    if (whatsappConfirmation && fullAppointment.client && fullAppointment.employee && fullAppointment.service) {
-      sendConfirmationWhatsApp(notificationDetails).catch(err => {
-        console.error('Error sending confirmation WhatsApp:', err)
-      })
+      if (whatsappConfirmation) {
+        sendConfirmationWhatsApp(notificationDetails)
+          .then((success) => {
+            if (success) {
+              console.log(`✅ Confirmation WhatsApp sent successfully for appointment ${id}`)
+            } else {
+              console.error(`❌ Failed to send confirmation WhatsApp for appointment ${id}`)
+            }
+          })
+          .catch(err => {
+            console.error(`❌ Error sending confirmation WhatsApp for appointment ${id}:`, err)
+          })
+      } else {
+        console.log(`⏭️ WhatsApp confirmation disabled for tenant ${user.tenant_id}`)
+      }
     }
   }
 
   // Send cancellation WhatsApp if status is cancelled
-  if (status === 'cancelled' && fullAppointment) {
-    sendCancellationWhatsApp(notificationDetails).catch(err => {
-      console.error('Error sending cancellation WhatsApp:', err)
-    })
+  if (status === 'cancelled' && fullAppointment.status !== 'cancelled') {
+    console.log(`📤 Status changed to cancelled for appointment ${id}, sending cancellation notification`)
+    
+    // Validate required data
+    if (!fullAppointment.client || !fullAppointment.client.phone || fullAppointment.client.phone.trim() === '') {
+      console.warn(`⚠️ Cannot send cancellation: Client ${fullAppointment.client_id} has no phone number`)
+    } else if (!fullAppointment.tenant || !fullAppointment.tenant.whatsapp_instance) {
+      console.warn(`⚠️ Cannot send cancellation: Tenant ${user.tenant_id} has no WhatsApp instance configured`)
+    } else if (!fullAppointment.service) {
+      console.warn(`⚠️ Cannot send cancellation: Missing service data for appointment ${id}`)
+    } else {
+      sendCancellationWhatsApp(notificationDetails)
+        .then((success) => {
+          if (success) {
+            console.log(`✅ Cancellation WhatsApp sent successfully for appointment ${id}`)
+          } else {
+            console.error(`❌ Failed to send cancellation WhatsApp for appointment ${id}`)
+          }
+        })
+        .catch(err => {
+          console.error(`❌ Error sending cancellation WhatsApp for appointment ${id}:`, err)
+        })
+    }
   }
 
   // Aggressive cache invalidation
