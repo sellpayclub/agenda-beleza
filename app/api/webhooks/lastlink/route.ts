@@ -313,7 +313,6 @@ export async function POST(request: Request) {
 
     // Aggressive cache invalidation after webhook update
     // Note: revalidateTag doesn't work in API routes, only revalidatePath
-    revalidatePath('/dashboard/assinatura')
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/configuracoes')
     revalidatePath('/dashboard/admin')

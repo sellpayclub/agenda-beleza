@@ -19,7 +19,6 @@ import {
   MessageSquare,
   Ban,
   Wallet,
-  CreditCard,
   Shield,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -84,11 +83,6 @@ const menuItems = [
     label: 'WhatsApp',
     href: '/dashboard/whatsapp',
     icon: MessageSquare,
-  },
-  {
-    label: 'Assinatura',
-    href: '/dashboard/assinatura',
-    icon: CreditCard,
   },
   {
     label: 'Configurações',

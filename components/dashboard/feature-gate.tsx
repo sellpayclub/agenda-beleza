@@ -3,9 +3,7 @@
 import { useTenant } from '@/hooks/use-tenant'
 import { hasFeature, FEATURES } from '@/lib/utils/plan-features'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Lock, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import { Lock } from 'lucide-react'
 
 interface FeatureGateProps {
   feature: string
@@ -47,12 +45,9 @@ export function FeatureGate({ feature, children, fallback }: FeatureGateProps) {
             <li>Relatórios exportáveis</li>
             <li>White-label e domínio próprio</li>
           </ul>
-          <Link href="/dashboard/assinatura">
-            <Button className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600">
-              Fazer Upgrade Agora
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          <p className="text-amber-800 text-sm">
+            Para fazer upgrade, acesse sua conta na LastLink.
+          </p>
         </CardContent>
       </Card>
     )
@@ -60,5 +55,6 @@ export function FeatureGate({ feature, children, fallback }: FeatureGateProps) {
 
   return <>{children}</>
 }
+
 
 

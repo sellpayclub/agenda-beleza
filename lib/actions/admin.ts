@@ -158,7 +158,6 @@ export async function updateTenantSubscription(
 
   // Aggressive cache invalidation
   revalidatePath('/dashboard/admin')
-  revalidatePath('/dashboard/assinatura')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/configuracoes')
 

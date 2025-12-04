@@ -83,7 +83,6 @@ export async function updateTenantProfile(data: TenantUpdate) {
   // Aggressive cache invalidation
   revalidatePath('/dashboard/configuracoes')
   revalidatePath('/dashboard')
-  revalidatePath('/dashboard/assinatura')
   revalidatePath('/dashboard/admin')
 
   return { data: tenant }
@@ -112,7 +111,6 @@ export async function updateTenantSettings(data: TenantSettingsUpdate) {
   // Aggressive cache invalidation
   revalidatePath('/dashboard/configuracoes')
   revalidatePath('/dashboard')
-  revalidatePath('/dashboard/assinatura')
 
   return { data: settings }
 }
