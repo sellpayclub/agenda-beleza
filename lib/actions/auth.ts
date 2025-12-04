@@ -132,6 +132,12 @@ export async function signUp(formData: FormData) {
 
     const finalSlug = existingTenant ? `${slug}-${Date.now()}` : slug
 
+    // Definir plano completo por padrão
+    const defaultPlan = PLAN_COMPLETO // 'completo'
+    const defaultStatus = 'active'
+    
+    console.log('Creating tenant with plan:', defaultPlan, 'and status:', defaultStatus)
+
     const { data: tenant, error: tenantError } = await adminClient
       .from('tenants')
       .insert({
@@ -139,8 +145,8 @@ export async function signUp(formData: FormData) {
         slug: finalSlug,
         phone,
         email,
-        subscription_plan: PLAN_COMPLETO, // Plano completo por padrão
-        subscription_status: 'active', // Status ativo por padrão
+        subscription_plan: defaultPlan, // Plano completo por padrão
+        subscription_status: defaultStatus, // Status ativo por padrão
       })
       .select()
       .single()
