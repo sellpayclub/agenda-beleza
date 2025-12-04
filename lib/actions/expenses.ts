@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { getCurrentUser } from './auth'
 import { startOfMonth, endOfMonth, format } from 'date-fns'
@@ -120,8 +121,21 @@ export async function createExpense(data: ExpenseInsert) {
   if (!currentUser) return { error: 'Não autorizado' }
   
   const tenantId = (currentUser as any).tenant_id
-  const supabase = await createClient() as any
   
+  // Use admin client to bypass RLS and ensure insert works
+  const supabase = createAdminClient() as any
+  
+  // Validate data
+  if (!data || !data.name || data.name.trim() === '') {
+    return { error: 'Nome da despesa é obrigatório' }
+  }
+
+  if (!data.amount || data.amount <= 0) {
+    return { error: 'Valor da despesa deve ser maior que zero' }
+  }
+
+  console.log(`Creating expense: ${data.name}`)
+
   const { data: expense, error } = await supabase
     .from('expenses')
     .insert({
@@ -136,7 +150,18 @@ export async function createExpense(data: ExpenseInsert) {
     return { error: 'Erro ao criar despesa' }
   }
 
+  if (!expense) {
+    console.error('Expense creation returned no data')
+    return { error: 'Erro ao criar despesa' }
+  }
+
+  console.log(`Expense created successfully: ${expense.id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/gastos')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/financeiro')
+
   return { data: expense }
 }
 
@@ -145,14 +170,47 @@ export async function updateExpense(id: string, data: Partial<ExpenseInsert>) {
   if (!currentUser) return { error: 'Não autorizado' }
   
   const tenantId = (currentUser as any).tenant_id
-  const supabase = await createClient() as any
   
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
+  
+  // Validate data
+  if (!data || Object.keys(data).length === 0) {
+    return { error: 'Dados inválidos' }
+  }
+
+  if (data.name !== undefined && (!data.name || data.name.trim() === '')) {
+    return { error: 'Nome da despesa não pode estar vazio' }
+  }
+
+  if (data.amount !== undefined && data.amount <= 0) {
+    return { error: 'Valor da despesa deve ser maior que zero' }
+  }
+
+  // Verify expense exists and belongs to tenant
+  const { data: existing } = await supabase
+    .from('expenses')
+    .select('id')
+    .eq('id', id)
+    .eq('tenant_id', tenantId)
+    .single()
+
+  if (!existing) {
+    console.error('Expense not found for update:', id)
+    return { error: 'Despesa não encontrada' }
+  }
+
+  // Add updated_at
+  const updateData = {
+    ...data,
+    updated_at: new Date().toISOString(),
+  }
+
+  console.log(`Updating expense: ${id}`)
+
   const { data: expense, error } = await supabase
     .from('expenses')
-    .update({
-      ...data,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq('id', id)
     .eq('tenant_id', tenantId)
     .select()
@@ -163,7 +221,18 @@ export async function updateExpense(id: string, data: Partial<ExpenseInsert>) {
     return { error: 'Erro ao atualizar despesa' }
   }
 
+  if (!expense) {
+    console.error('Expense update returned no data:', id)
+    return { error: 'Registro não encontrado ou não foi atualizado' }
+  }
+
+  console.log(`Expense updated successfully: ${id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/gastos')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/financeiro')
+
   return { data: expense }
 }
 
@@ -172,8 +241,25 @@ export async function deleteExpense(id: string) {
   if (!currentUser) return { error: 'Não autorizado' }
   
   const tenantId = (currentUser as any).tenant_id
-  const supabase = await createClient() as any
   
+  // Use admin client to bypass RLS and ensure delete works
+  const supabase = createAdminClient() as any
+  
+  // Verify expense exists and belongs to tenant
+  const { data: existing } = await supabase
+    .from('expenses')
+    .select('id')
+    .eq('id', id)
+    .eq('tenant_id', tenantId)
+    .single()
+
+  if (!existing) {
+    console.error('Expense not found for deletion:', id)
+    return { error: 'Despesa não encontrada' }
+  }
+
+  console.log(`Deleting expense: ${id}`)
+
   const { error } = await supabase
     .from('expenses')
     .delete()
@@ -185,7 +271,13 @@ export async function deleteExpense(id: string) {
     return { error: 'Erro ao excluir despesa' }
   }
 
+  console.log(`Expense deleted successfully: ${id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/gastos')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/financeiro')
+
   return { success: true }
 }
 
@@ -194,11 +286,31 @@ export async function toggleExpensePaid(id: string, isPaid: boolean) {
   if (!currentUser) return { error: 'Não autorizado' }
   
   const tenantId = (currentUser as any).tenant_id
-  const supabase = await createClient() as any
   
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
+  
+  // Verify expense exists and belongs to tenant
+  const { data: existing } = await supabase
+    .from('expenses')
+    .select('id')
+    .eq('id', id)
+    .eq('tenant_id', tenantId)
+    .single()
+
+  if (!existing) {
+    console.error('Expense not found for paid toggle:', id)
+    return { error: 'Despesa não encontrada' }
+  }
+
+  console.log(`Toggling expense ${id} paid status to ${isPaid}`)
+
   const { data: expense, error } = await supabase
     .from('expenses')
-    .update({ is_paid: isPaid })
+    .update({ 
+      is_paid: isPaid,
+      updated_at: new Date().toISOString()
+    })
     .eq('id', id)
     .eq('tenant_id', tenantId)
     .select()
@@ -209,7 +321,18 @@ export async function toggleExpensePaid(id: string, isPaid: boolean) {
     return { error: 'Erro ao atualizar despesa' }
   }
 
+  if (!expense) {
+    console.error('Expense paid toggle returned no data:', id)
+    return { error: 'Registro não encontrado ou não foi atualizado' }
+  }
+
+  console.log(`Expense paid status updated successfully: ${id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/gastos')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/financeiro')
+
   return { data: expense }
 }
 

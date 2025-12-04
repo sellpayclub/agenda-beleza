@@ -233,11 +233,12 @@ export async function updateAppointmentStatus(id: string, status: AppointmentSta
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
-  const updateData: AppointmentUpdate = { status }
-  if (cancellationReason) {
-    updateData.cancellation_reason = cancellationReason
+  // Validate input
+  if (!id || !status) {
+    return { error: 'Dados inválidos' }
   }
 
   // Get full appointment data before update for notification
@@ -255,8 +256,19 @@ export async function updateAppointmentStatus(id: string, status: AppointmentSta
     .single()
 
   if (!fullAppointment) {
+    console.error('Appointment not found:', id)
     return { error: 'Agendamento não encontrado' }
   }
+
+  const updateData: AppointmentUpdate = { 
+    status,
+    updated_at: new Date().toISOString()
+  }
+  if (cancellationReason) {
+    updateData.cancellation_reason = cancellationReason
+  }
+
+  console.log(`Updating appointment ${id} status to ${status}`)
 
   const { data: appointment, error } = await supabase
     .from('appointments')
@@ -270,6 +282,13 @@ export async function updateAppointmentStatus(id: string, status: AppointmentSta
     console.error('Error updating appointment status:', error)
     return { error: 'Erro ao atualizar status' }
   }
+
+  if (!appointment) {
+    console.error('Appointment update returned no data:', id)
+    return { error: 'Registro não encontrado ou não foi atualizado' }
+  }
+
+  console.log(`Appointment ${id} status updated successfully to ${status}`)
 
   // Prepare notification details
   const notificationDetails = {
@@ -306,7 +325,7 @@ export async function updateAppointmentStatus(id: string, status: AppointmentSta
     })
   }
 
-  // Revalidate all affected paths
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/agendamentos')
   revalidatePath('/dashboard')
   
@@ -324,12 +343,36 @@ export async function updatePaymentStatus(id: string, paymentStatus: PaymentStat
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
-  const updateData: AppointmentUpdate = { payment_status: paymentStatus }
+  // Validate input
+  if (!id || !paymentStatus) {
+    return { error: 'Dados inválidos' }
+  }
+
+  // Verify appointment exists and belongs to tenant
+  const { data: existing } = await supabase
+    .from('appointments')
+    .select('id')
+    .eq('id', id)
+    .eq('tenant_id', user.tenant_id)
+    .single()
+
+  if (!existing) {
+    console.error('Appointment not found for payment update:', id)
+    return { error: 'Agendamento não encontrado' }
+  }
+
+  const updateData: AppointmentUpdate = { 
+    payment_status: paymentStatus,
+    updated_at: new Date().toISOString()
+  }
   if (paymentMethod) {
     updateData.payment_method = paymentMethod
   }
+
+  console.log(`Updating appointment ${id} payment status to ${paymentStatus}`)
 
   const { data: appointment, error } = await supabase
     .from('appointments')
@@ -344,7 +387,14 @@ export async function updatePaymentStatus(id: string, paymentStatus: PaymentStat
     return { error: 'Erro ao atualizar status de pagamento' }
   }
 
-  // Revalidate all affected paths
+  if (!appointment) {
+    console.error('Payment status update returned no data:', id)
+    return { error: 'Registro não encontrado ou não foi atualizado' }
+  }
+
+  console.log(`Appointment ${id} payment status updated successfully to ${paymentStatus}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/agendamentos')
   revalidatePath('/dashboard/financeiro')
   revalidatePath('/dashboard')

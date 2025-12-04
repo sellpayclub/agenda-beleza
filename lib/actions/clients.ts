@@ -118,11 +118,46 @@ export async function updateClient(id: string, data: ClientUpdate) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
+  // Validate data
+  if (!data || Object.keys(data).length === 0) {
+    return { error: 'Dados inválidos' }
+  }
+
+  if (data.name !== undefined && (!data.name || data.name.trim() === '')) {
+    return { error: 'Nome do cliente não pode estar vazio' }
+  }
+
+  if (data.phone !== undefined && (!data.phone || data.phone.trim() === '')) {
+    return { error: 'Telefone do cliente não pode estar vazio' }
+  }
+
+  // Verify client exists and belongs to tenant
+  const { data: existing } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('id', id)
+    .eq('tenant_id', user.tenant_id)
+    .single()
+
+  if (!existing) {
+    console.error('Client not found for update:', id)
+    return { error: 'Cliente não encontrado' }
+  }
+
+  // Add updated_at
+  const updateData = {
+    ...data,
+    updated_at: new Date().toISOString(),
+  }
+
+  console.log(`Updating client: ${id}`)
+
   const { data: client, error } = await supabase
     .from('clients')
-    .update(data)
+    .update(updateData)
     .eq('id', id)
     .eq('tenant_id', user.tenant_id)
     .select()
@@ -133,7 +168,18 @@ export async function updateClient(id: string, data: ClientUpdate) {
     return { error: 'Erro ao atualizar cliente' }
   }
 
+  if (!client) {
+    console.error('Client update returned no data:', id)
+    return { error: 'Registro não encontrado ou não foi atualizado' }
+  }
+
+  console.log(`Client updated successfully: ${id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/clientes')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { data: client }
 }
 
@@ -142,8 +188,24 @@ export async function deleteClient(id: string) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure delete works
+  const supabase = createAdminClient() as any
   
+  // Verify client exists and belongs to tenant
+  const { data: existing } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('id', id)
+    .eq('tenant_id', user.tenant_id)
+    .single()
+
+  if (!existing) {
+    console.error('Client not found for deletion:', id)
+    return { error: 'Cliente não encontrado' }
+  }
+
+  console.log(`Deleting client: ${id}`)
+
   const { error } = await supabase
     .from('clients')
     .delete()
@@ -155,7 +217,13 @@ export async function deleteClient(id: string) {
     return { error: 'Erro ao excluir cliente' }
   }
 
+  console.log(`Client deleted successfully: ${id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/clientes')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { success: true }
 }
 

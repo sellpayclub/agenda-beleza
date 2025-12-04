@@ -113,11 +113,41 @@ export async function POST(request: Request) {
     const payload: LastlinkWebhookPayload = await request.json()
     
     console.log('=== LASTLINK WEBHOOK RECEIVED ===')
+    console.log('Event ID:', payload.Id)
     console.log('Event:', payload.Event)
     console.log('IsTest:', payload.IsTest)
     console.log('Data:', JSON.stringify(payload.Data, null, 2))
 
     const supabase = createAdminClient() as any
+
+    // Check if this event was already processed (idempotency)
+    // Try to check by event_id first, fallback to checking payload hash
+    if (payload.Id) {
+      try {
+        const { data: existingLog } = await supabase
+          .from('webhook_logs')
+          .select('id, processed')
+          .eq('source', 'lastlink')
+          .eq('event_id', payload.Id)
+          .maybeSingle()
+
+        if (existingLog && existingLog.processed) {
+          console.log(`Event ${payload.Id} already processed, skipping`)
+          return NextResponse.json({ 
+            success: true, 
+            message: 'Event already processed',
+            eventId: payload.Id
+          })
+        }
+      } catch (err: any) {
+        // If event_id column doesn't exist, continue processing
+        if (err.message && err.message.includes('column') && err.message.includes('event_id')) {
+          console.log('event_id column not found, skipping idempotency check')
+        } else {
+          console.error('Error checking idempotency:', err)
+        }
+      }
+    }
 
     // Obter email do comprador
     const buyerEmail = payload.Data?.Buyer?.Email || payload.Data?.Member?.Email
@@ -237,19 +267,49 @@ export async function POST(request: Request) {
         })
     }
 
-    // Atualizar tenant
-    const { error: updateError } = await supabase
+    // Atualizar tenant com verificação de sucesso
+    console.log(`Updating tenant ${tenant.id} with data:`, updateData)
+
+    const { data: updatedTenant, error: updateError } = await supabase
       .from('tenants')
       .update(updateData)
       .eq('id', tenant.id)
+      .select()
+      .single()
 
     if (updateError) {
       console.error('Error updating tenant:', updateError)
+      
+      // Log failed event
+      await supabase
+        .from('webhook_logs')
+        .insert({
+          source: 'lastlink',
+          event_id: payload.Id,
+          event: payload.Event,
+          payload: payload,
+          buyer_email: buyerEmail,
+          tenant_id: tenant.id,
+          processed: false,
+          error: updateError.message || 'Error updating subscription',
+        })
+        .catch(() => {})
+      
       return NextResponse.json({ 
         success: false, 
         error: 'Error updating subscription' 
       }, { status: 500 })
     }
+
+    if (!updatedTenant) {
+      console.error('Tenant update returned no data:', tenant.id)
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Tenant not found or update failed' 
+      }, { status: 500 })
+    }
+
+    console.log(`Tenant ${tenant.id} updated successfully:`, message)
 
     // Aggressive cache invalidation after webhook update
     // Note: revalidateTag doesn't work in API routes, only revalidatePath
@@ -260,18 +320,42 @@ export async function POST(request: Request) {
 
     console.log(`Tenant ${tenant.id} updated:`, message)
 
-    // Logar evento processado
-    await supabase
-      .from('webhook_logs')
-      .insert({
+    // Logar evento processado com idempotência
+    try {
+      const logData: any = {
         source: 'lastlink',
         event: payload.Event,
         payload: payload,
         buyer_email: buyerEmail,
         tenant_id: tenant.id,
         processed: true,
-      })
-      .catch(() => {}) // Ignorar se tabela não existe
+      }
+
+      // Add event_id if column exists
+      if (payload.Id) {
+        logData.event_id = payload.Id
+      }
+
+      await supabase
+        .from('webhook_logs')
+        .insert(logData)
+        .catch((err: any) => {
+          // Try upsert if insert fails (event_id might exist)
+          if (payload.Id) {
+            return supabase
+              .from('webhook_logs')
+              .upsert(logData, {
+                onConflict: 'event_id,source',
+                ignoreDuplicates: false
+              })
+              .catch(() => {})
+          }
+          return Promise.resolve()
+        })
+    } catch (err) {
+      console.error('Error logging webhook event:', err)
+      // Não falhar se logging falhar
+    }
 
     return NextResponse.json({ 
       success: true, 

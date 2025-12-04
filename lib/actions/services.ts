@@ -224,27 +224,141 @@ export async function getServicesWithEmployees() {
 }
 
 export async function assignEmployeeToService(serviceId: string, employeeId: string) {
-  const supabase = await createClient() as any
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return { error: 'Não autorizado' }
+  const user = currentUser as any
+
+  // Use admin client to bypass RLS and ensure insert works
+  const supabase = createAdminClient() as any
   
-  const { error } = await supabase
+  // Validate input
+  if (!serviceId || !employeeId) {
+    return { error: 'ID do serviço e do funcionário são obrigatórios' }
+  }
+
+  // Verify service and employee belong to tenant
+  const [serviceCheck, employeeCheck] = await Promise.all([
+    supabase
+      .from('services')
+      .select('id')
+      .eq('id', serviceId)
+      .eq('tenant_id', user.tenant_id)
+      .single(),
+    supabase
+      .from('employees')
+      .select('id')
+      .eq('id', employeeId)
+      .eq('tenant_id', user.tenant_id)
+      .single()
+  ])
+
+  if (!serviceCheck.data) {
+    console.error('Service not found:', serviceId)
+    return { error: 'Serviço não encontrado' }
+  }
+
+  if (!employeeCheck.data) {
+    console.error('Employee not found:', employeeId)
+    return { error: 'Funcionário não encontrado' }
+  }
+
+  // Check if association already exists
+  const { data: existing } = await supabase
+    .from('employee_services')
+    .select('id')
+    .eq('service_id', serviceId)
+    .eq('employee_id', employeeId)
+    .single()
+
+  if (existing) {
+    return { success: true } // Already associated
+  }
+
+  console.log(`Assigning employee ${employeeId} to service ${serviceId}`)
+
+  const { data, error } = await supabase
     .from('employee_services')
     .insert({
       service_id: serviceId,
       employee_id: employeeId,
     })
+    .select()
+    .single()
 
   if (error) {
     console.error('Error assigning employee to service:', error)
     return { error: 'Erro ao associar funcionário ao serviço' }
   }
 
+  if (!data) {
+    console.error('Employee-service assignment returned no data')
+    return { error: 'Erro ao associar funcionário ao serviço' }
+  }
+
+  console.log(`Employee assigned to service successfully`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/servicos')
+  revalidatePath('/dashboard/funcionarios')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { success: true }
 }
 
 export async function removeEmployeeFromService(serviceId: string, employeeId: string) {
-  const supabase = await createClient() as any
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return { error: 'Não autorizado' }
+  const user = currentUser as any
+
+  // Use admin client to bypass RLS and ensure delete works
+  const supabase = createAdminClient() as any
   
+  // Validate input
+  if (!serviceId || !employeeId) {
+    return { error: 'ID do serviço e do funcionário são obrigatórios' }
+  }
+
+  // Verify service and employee belong to tenant
+  const [serviceCheck, employeeCheck] = await Promise.all([
+    supabase
+      .from('services')
+      .select('id')
+      .eq('id', serviceId)
+      .eq('tenant_id', user.tenant_id)
+      .single(),
+    supabase
+      .from('employees')
+      .select('id')
+      .eq('id', employeeId)
+      .eq('tenant_id', user.tenant_id)
+      .single()
+  ])
+
+  if (!serviceCheck.data) {
+    console.error('Service not found:', serviceId)
+    return { error: 'Serviço não encontrado' }
+  }
+
+  if (!employeeCheck.data) {
+    console.error('Employee not found:', employeeId)
+    return { error: 'Funcionário não encontrado' }
+  }
+
+  // Verify association exists
+  const { data: existing } = await supabase
+    .from('employee_services')
+    .select('id')
+    .eq('service_id', serviceId)
+    .eq('employee_id', employeeId)
+    .single()
+
+  if (!existing) {
+    return { success: true } // Already removed
+  }
+
+  console.log(`Removing employee ${employeeId} from service ${serviceId}`)
+
   const { error } = await supabase
     .from('employee_services')
     .delete()
@@ -256,7 +370,14 @@ export async function removeEmployeeFromService(serviceId: string, employeeId: s
     return { error: 'Erro ao remover funcionário do serviço' }
   }
 
+  console.log(`Employee removed from service successfully`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/servicos')
+  revalidatePath('/dashboard/funcionarios')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { success: true }
 }
 

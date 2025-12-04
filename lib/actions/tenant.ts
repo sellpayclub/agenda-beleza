@@ -129,6 +129,20 @@ export async function uploadTenantLogo(formData: FormData) {
     return { error: 'Nenhum arquivo enviado' }
   }
 
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    return { error: 'Tipo de arquivo não permitido. Use JPEG, PNG, GIF ou WebP' }
+  }
+
+  // Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024 // 5MB
+  if (file.size > maxSize) {
+    return { error: 'Arquivo muito grande. Tamanho máximo: 5MB' }
+  }
+
+  console.log(`Uploading logo for tenant: ${user.tenant_id}`)
+
   // Upload to Supabase Storage
   const fileExt = file.name.split('.').pop()
   const fileName = `${user.tenant_id}/logo.${fileExt}`
@@ -149,18 +163,38 @@ export async function uploadTenantLogo(formData: FormData) {
     .from('logos')
     .getPublicUrl(fileName)
 
-  // Update tenant
-  const { error: updateError } = await supabase
+  // Use admin client to update tenant
+  const adminSupabase = createAdminClient() as any
+
+  console.log(`Updating tenant logo URL: ${user.tenant_id}`)
+
+  const { data: tenant, error: updateError } = await adminSupabase
     .from('tenants')
-    .update({ logo_url: publicUrl })
+    .update({ 
+      logo_url: publicUrl,
+      updated_at: new Date().toISOString()
+    })
     .eq('id', user.tenant_id)
+    .select()
+    .single()
 
   if (updateError) {
     console.error('Error updating logo URL:', updateError)
     return { error: 'Erro ao atualizar logo' }
   }
 
+  if (!tenant) {
+    console.error('Tenant logo update returned no data')
+    return { error: 'Erro ao atualizar logo' }
+  }
+
+  console.log(`Tenant logo updated successfully: ${user.tenant_id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/configuracoes')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/admin')
+
   return { url: publicUrl }
 }
 

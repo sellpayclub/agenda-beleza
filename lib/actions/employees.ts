@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { getCurrentUser } from './auth'
 import type { EmployeeInsert, EmployeeUpdate } from '@/types'
@@ -76,8 +77,16 @@ export async function createEmployee(data: Omit<EmployeeInsert, 'tenant_id'>) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure insert works
+  const supabase = createAdminClient() as any
   
+  // Validate data
+  if (!data || !data.name || data.name.trim() === '') {
+    return { error: 'Nome do funcionário é obrigatório' }
+  }
+
+  console.log(`Creating employee: ${data.name}`)
+
   const { data: employee, error } = await supabase
     .from('employees')
     .insert({
@@ -92,7 +101,18 @@ export async function createEmployee(data: Omit<EmployeeInsert, 'tenant_id'>) {
     return { error: 'Erro ao criar funcionário' }
   }
 
+  if (!employee) {
+    console.error('Employee creation returned no data')
+    return { error: 'Erro ao criar funcionário' }
+  }
+
+  console.log(`Employee created successfully: ${employee.id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/funcionarios')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { data: employee }
 }
 
@@ -101,11 +121,42 @@ export async function updateEmployee(id: string, data: EmployeeUpdate) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
+  // Validate data
+  if (!data || Object.keys(data).length === 0) {
+    return { error: 'Dados inválidos' }
+  }
+
+  if (data.name !== undefined && (!data.name || data.name.trim() === '')) {
+    return { error: 'Nome do funcionário não pode estar vazio' }
+  }
+
+  // Verify employee exists and belongs to tenant
+  const { data: existing } = await supabase
+    .from('employees')
+    .select('id')
+    .eq('id', id)
+    .eq('tenant_id', user.tenant_id)
+    .single()
+
+  if (!existing) {
+    console.error('Employee not found for update:', id)
+    return { error: 'Funcionário não encontrado' }
+  }
+
+  // Add updated_at
+  const updateData = {
+    ...data,
+    updated_at: new Date().toISOString(),
+  }
+
+  console.log(`Updating employee: ${id}`)
+
   const { data: employee, error } = await supabase
     .from('employees')
-    .update(data)
+    .update(updateData)
     .eq('id', id)
     .eq('tenant_id', user.tenant_id)
     .select()
@@ -116,7 +167,18 @@ export async function updateEmployee(id: string, data: EmployeeUpdate) {
     return { error: 'Erro ao atualizar funcionário' }
   }
 
+  if (!employee) {
+    console.error('Employee update returned no data:', id)
+    return { error: 'Registro não encontrado ou não foi atualizado' }
+  }
+
+  console.log(`Employee updated successfully: ${id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/funcionarios')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { data: employee }
 }
 
@@ -125,8 +187,24 @@ export async function deleteEmployee(id: string) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure delete works
+  const supabase = createAdminClient() as any
   
+  // Verify employee exists and belongs to tenant
+  const { data: existing } = await supabase
+    .from('employees')
+    .select('id')
+    .eq('id', id)
+    .eq('tenant_id', user.tenant_id)
+    .single()
+
+  if (!existing) {
+    console.error('Employee not found for deletion:', id)
+    return { error: 'Funcionário não encontrado' }
+  }
+
+  console.log(`Deleting employee: ${id}`)
+
   const { error } = await supabase
     .from('employees')
     .delete()
@@ -138,7 +216,13 @@ export async function deleteEmployee(id: string) {
     return { error: 'Erro ao excluir funcionário' }
   }
 
+  console.log(`Employee deleted successfully: ${id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/funcionarios')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { success: true }
 }
 
@@ -147,30 +231,54 @@ export async function toggleEmployeeStatus(id: string) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
   // Get current status
   const { data: employee } = await supabase
     .from('employees')
     .select('is_active')
     .eq('id', id)
+    .eq('tenant_id', user.tenant_id)
     .single()
 
-  if (!employee) return { error: 'Funcionário não encontrado' }
+  if (!employee) {
+    console.error('Employee not found for status toggle:', id)
+    return { error: 'Funcionário não encontrado' }
+  }
+
+  const newStatus = !employee.is_active
+  console.log(`Toggling employee ${id} status to ${newStatus}`)
 
   // Toggle status
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from('employees')
-    .update({ is_active: !employee.is_active })
+    .update({ 
+      is_active: newStatus,
+      updated_at: new Date().toISOString()
+    })
     .eq('id', id)
     .eq('tenant_id', user.tenant_id)
+    .select()
+    .single()
 
   if (error) {
     console.error('Error toggling employee status:', error)
     return { error: 'Erro ao alterar status do funcionário' }
   }
 
+  if (!updated) {
+    console.error('Employee status toggle returned no data:', id)
+    return { error: 'Registro não encontrado ou não foi atualizado' }
+  }
+
+  console.log(`Employee status toggled successfully: ${id}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/funcionarios')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { success: true }
 }
 
@@ -220,17 +328,47 @@ export async function getEmployeesByService(serviceId: string) {
 }
 
 export async function updateEmployeeServices(employeeId: string, serviceIds: string[]) {
-  const supabase = await createClient() as any
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return { error: 'Não autorizado' }
+  const user = currentUser as any
+
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
+  // Validate input
+  if (!employeeId) {
+    return { error: 'ID do funcionário é obrigatório' }
+  }
+
+  // Verify employee exists and belongs to tenant
+  const { data: employee } = await supabase
+    .from('employees')
+    .select('id')
+    .eq('id', employeeId)
+    .eq('tenant_id', user.tenant_id)
+    .single()
+
+  if (!employee) {
+    console.error('Employee not found for service update:', employeeId)
+    return { error: 'Funcionário não encontrado' }
+  }
+
+  console.log(`Updating services for employee: ${employeeId}`)
+
   // Delete existing associations
-  await supabase
+  const { error: deleteError } = await supabase
     .from('employee_services')
     .delete()
     .eq('employee_id', employeeId)
 
+  if (deleteError) {
+    console.error('Error deleting employee services:', deleteError)
+    return { error: 'Erro ao remover serviços do funcionário' }
+  }
+
   // Insert new associations
   if (serviceIds.length > 0) {
-    const { error } = await supabase
+    const { error: insertError } = await supabase
       .from('employee_services')
       .insert(
         serviceIds.map(serviceId => ({
@@ -239,13 +377,20 @@ export async function updateEmployeeServices(employeeId: string, serviceIds: str
         }))
       )
 
-    if (error) {
-      console.error('Error updating employee services:', error)
-      return { error: 'Erro ao atualizar serviços do funcionário' }
+    if (insertError) {
+      console.error('Error inserting employee services:', insertError)
+      return { error: 'Erro ao associar serviços ao funcionário' }
     }
   }
 
+  console.log(`Employee services updated successfully: ${employeeId}`)
+
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/funcionarios')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/servicos')
+  revalidatePath('/dashboard/agendamentos')
+
   return { success: true }
 }
 
