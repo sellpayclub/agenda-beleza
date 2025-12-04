@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { addMonths, addDays } from 'date-fns'
 import { PLAN_START, PLAN_COMPLETO } from '@/lib/utils/plan-features'
+import { revalidatePath } from 'next/cache'
 
 // Tipos para os eventos da Lastlink
 interface LastlinkWebhookPayload {
@@ -249,6 +250,13 @@ export async function POST(request: Request) {
         error: 'Error updating subscription' 
       }, { status: 500 })
     }
+
+    // Aggressive cache invalidation after webhook update
+    // Note: revalidateTag doesn't work in API routes, only revalidatePath
+    revalidatePath('/dashboard/assinatura')
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/configuracoes')
+    revalidatePath('/dashboard/admin')
 
     console.log(`Tenant ${tenant.id} updated:`, message)
 

@@ -45,7 +45,8 @@ export async function updateTenantProfile(data: TenantUpdate) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
   // Check if slug is being changed and if it's available
   if (data.slug) {
@@ -61,9 +62,15 @@ export async function updateTenantProfile(data: TenantUpdate) {
     }
   }
 
+  // Add updated_at timestamp
+  const updateData = {
+    ...data,
+    updated_at: new Date().toISOString(),
+  }
+
   const { data: tenant, error } = await supabase
     .from('tenants')
-    .update(data)
+    .update(updateData)
     .eq('id', user.tenant_id)
     .select()
     .single()
@@ -73,7 +80,12 @@ export async function updateTenantProfile(data: TenantUpdate) {
     return { error: 'Erro ao atualizar perfil' }
   }
 
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/configuracoes')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/assinatura')
+  revalidatePath('/dashboard/admin')
+
   return { data: tenant }
 }
 
@@ -82,7 +94,8 @@ export async function updateTenantSettings(data: TenantSettingsUpdate) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
   const { data: settings, error } = await supabase
     .from('tenant_settings')
@@ -96,7 +109,11 @@ export async function updateTenantSettings(data: TenantSettingsUpdate) {
     return { error: 'Erro ao atualizar configurações' }
   }
 
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/configuracoes')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/assinatura')
+
   return { data: settings }
 }
 

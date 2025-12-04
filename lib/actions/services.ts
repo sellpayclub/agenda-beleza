@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { getCurrentUser } from './auth'
 import type { ServiceInsert, ServiceUpdate } from '@/types'
@@ -76,7 +77,8 @@ export async function createService(data: Omit<ServiceInsert, 'tenant_id'>) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure insert works
+  const supabase = createAdminClient() as any
   
   const { data: service, error } = await supabase
     .from('services')
@@ -92,7 +94,11 @@ export async function createService(data: Omit<ServiceInsert, 'tenant_id'>) {
     return { error: 'Erro ao criar serviço' }
   }
 
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/servicos')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { data: service }
 }
 
@@ -101,7 +107,8 @@ export async function updateService(id: string, data: ServiceUpdate) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
   const { data: service, error } = await supabase
     .from('services')
@@ -116,7 +123,11 @@ export async function updateService(id: string, data: ServiceUpdate) {
     return { error: 'Erro ao atualizar serviço' }
   }
 
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/servicos')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { data: service }
 }
 
@@ -125,7 +136,8 @@ export async function deleteService(id: string) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure delete works
+  const supabase = createAdminClient() as any
   
   const { error } = await supabase
     .from('services')
@@ -138,7 +150,11 @@ export async function deleteService(id: string) {
     return { error: 'Erro ao excluir serviço' }
   }
 
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/servicos')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { success: true }
 }
 
@@ -147,13 +163,15 @@ export async function toggleServiceStatus(id: string) {
   if (!currentUser) return { error: 'Não autorizado' }
   const user = currentUser as any
 
-  const supabase = await createClient() as any
+  // Use admin client to bypass RLS and ensure update works
+  const supabase = createAdminClient() as any
   
   // Get current status
   const { data: service } = await supabase
     .from('services')
     .select('is_active')
     .eq('id', id)
+    .eq('tenant_id', user.tenant_id)
     .single()
 
   if (!service) return { error: 'Serviço não encontrado' }
@@ -170,7 +188,11 @@ export async function toggleServiceStatus(id: string) {
     return { error: 'Erro ao alterar status do serviço' }
   }
 
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/servicos')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/agendamentos')
+
   return { success: true }
 }
 

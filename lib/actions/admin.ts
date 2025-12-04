@@ -156,7 +156,12 @@ export async function updateTenantSubscription(
     return { error: 'Erro ao atualizar assinatura' }
   }
 
+  // Aggressive cache invalidation
   revalidatePath('/dashboard/admin')
+  revalidatePath('/dashboard/assinatura')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/configuracoes')
+
   return { success: true }
 }
 

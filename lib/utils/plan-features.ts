@@ -101,3 +101,4 @@ export function canUpgrade(plan: string | null | undefined): boolean {
   return plan.toLowerCase() === PLAN_START || plan.toLowerCase() === PLAN_TRIAL
 }
 
+

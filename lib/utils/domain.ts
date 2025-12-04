@@ -36,3 +36,4 @@ export function getManageLink(
   return `${baseUrl}/b/${tenant.slug}/manage/${appointmentId}`
 }
 
+
