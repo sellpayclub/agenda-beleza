@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -11,11 +12,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { signUp } from '@/lib/actions/auth'
 import { registerSchema, type RegisterInput } from '@/lib/validations'
 import { toast } from 'sonner'
-import { Loader2, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 export default function RegisterPage() {
+  const router = useRouter()
+  const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  // Verificar se registro está habilitado
+  useEffect(() => {
+    async function checkRegistrationStatus() {
+      try {
+        const response = await fetch('/api/auth/registration-status')
+        const data = await response.json()
+        setRegistrationEnabled(data.enabled === true)
+        
+        if (data.enabled !== true) {
+          toast.error('Registro de novas contas está temporariamente desabilitado.')
+          setTimeout(() => {
+            router.push('/login')
+          }, 2000)
+        }
+      } catch (error) {
+        console.error('Error checking registration status:', error)
+        // Em caso de erro, assumir que está desabilitado por segurança
+        setRegistrationEnabled(false)
+      }
+    }
+    
+    checkRegistrationStatus()
+  }, [router])
 
   const {
     register,
@@ -56,6 +83,45 @@ export default function RegisterPage() {
       toast.error(error?.message || 'Erro ao criar conta')
       setLoading(false)
     }
+  }
+
+  // Mostrar loading enquanto verifica status
+  if (registrationEnabled === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4 py-8">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900/20 via-gray-950 to-gray-950" />
+        <Card className="relative w-full max-w-md bg-gray-900/50 border-white/10 backdrop-blur">
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-violet-400" />
+            <p className="text-gray-400">Carregando...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Mostrar mensagem se registro estiver desabilitado
+  if (registrationEnabled === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4 py-8">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900/20 via-gray-950 to-gray-950" />
+        <Card className="relative w-full max-w-md bg-gray-900/50 border-white/10 backdrop-blur">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-yellow-400" />
+            <CardTitle className="text-xl text-white mb-2">Registro Desabilitado</CardTitle>
+            <p className="text-gray-400 mb-6">
+              O registro de novas contas está temporariamente desabilitado.
+            </p>
+            <Button
+              onClick={() => router.push('/login')}
+              className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600"
+            >
+              Ir para Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

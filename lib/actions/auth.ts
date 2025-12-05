@@ -84,8 +84,53 @@ export async function signIn(formData: FormData) {
   }
 }
 
+// Rate limiting: armazenar tentativas de registro por IP/email
+const registrationAttempts = new Map<string, { count: number; lastAttempt: number }>()
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000 // 1 hora
+const MAX_ATTEMPTS_PER_HOUR = 3 // Máximo 3 tentativas por hora por IP/email
+
+function getRateLimitKey(identifier: string): string {
+  return `signup:${identifier}`
+}
+
+function checkRateLimit(identifier: string): { allowed: boolean; remaining: number } {
+  const key = getRateLimitKey(identifier)
+  const now = Date.now()
+  const attempt = registrationAttempts.get(key)
+
+  if (!attempt) {
+    registrationAttempts.set(key, { count: 1, lastAttempt: now })
+    return { allowed: true, remaining: MAX_ATTEMPTS_PER_HOUR - 1 }
+  }
+
+  // Reset se passou a janela de tempo
+  if (now - attempt.lastAttempt > RATE_LIMIT_WINDOW) {
+    registrationAttempts.set(key, { count: 1, lastAttempt: now })
+    return { allowed: true, remaining: MAX_ATTEMPTS_PER_HOUR - 1 }
+  }
+
+  // Incrementar contador
+  attempt.count++
+  attempt.lastAttempt = now
+  registrationAttempts.set(key, attempt)
+
+  if (attempt.count > MAX_ATTEMPTS_PER_HOUR) {
+    return { allowed: false, remaining: 0 }
+  }
+
+  return { allowed: true, remaining: MAX_ATTEMPTS_PER_HOUR - attempt.count }
+}
+
 export async function signUp(formData: FormData) {
   try {
+    // Verificar se registro público está habilitado
+    const enablePublicRegistration = process.env.ENABLE_PUBLIC_REGISTRATION === 'true'
+    
+    if (!enablePublicRegistration) {
+      console.warn('⚠️ Tentativa de registro bloqueada - registro público desabilitado')
+      return { error: 'Registro de novas contas está temporariamente desabilitado. Entre em contato com o suporte.' }
+    }
+
     const supabase = await createClient() as any
     const adminClient = createAdminClient() as any
     
@@ -99,9 +144,37 @@ export async function signUp(formData: FormData) {
       return { error: 'Todos os campos são obrigatórios' }
     }
 
+    // Validação de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return { error: 'Email inválido' }
+    }
+
+    // Rate limiting por email
+    const rateLimit = checkRateLimit(email.toLowerCase())
+    if (!rateLimit.allowed) {
+      console.warn(`⚠️ Rate limit excedido para email: ${email}`)
+      return { error: `Muitas tentativas. Aguarde 1 hora antes de tentar novamente.` }
+    }
+
+    // Verificar se email já existe
+    const { data: existingTenant } = await adminClient
+      .from('tenants')
+      .select('id, email')
+      .eq('email', email.toLowerCase())
+      .maybeSingle()
+
+    if (existingTenant) {
+      console.warn(`⚠️ Tentativa de registro com email já existente: ${email}`)
+      return { error: 'Este email já está cadastrado. Use outro email ou faça login.' }
+    }
+
+    console.log(`📝 Tentativa de registro: ${email} (${businessName})`)
+
     // Create user in Supabase Auth
+    // IMPORTANTE: emailConfirmRequired deve estar habilitado no Supabase Dashboard
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
+      email: email.toLowerCase(),
       password,
       options: {
         data: {
@@ -207,7 +280,9 @@ export async function signUp(formData: FormData) {
       // Não bloquear por erro de employee
     }
 
-    // Se o email precisa ser confirmado, mostrar mensagem
+    console.log(`✅ Registro criado com sucesso: ${email} (Tenant ID: ${tenant.id})`)
+
+    // SEMPRE exigir confirmação de email - nunca permitir login sem confirmação
     if (authData.user && !authData.session) {
       return { 
         success: true,
@@ -216,7 +291,10 @@ export async function signUp(formData: FormData) {
       }
     }
 
-    redirect('/dashboard')
+    // Se por algum motivo não exigiu confirmação, ainda assim redirecionar para login
+    // (não deve acontecer se emailConfirmRequired estiver habilitado no Supabase)
+    console.warn('⚠️ Registro criado sem exigir confirmação de email - verificar configuração do Supabase')
+    redirect('/login')
   } catch (error: any) {
     console.error('SignUp error:', error)
     return { error: error?.message || 'Erro inesperado ao criar conta' }
