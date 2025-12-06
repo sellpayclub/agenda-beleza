@@ -194,13 +194,13 @@ export async function signUp(formData: FormData) {
     const slug = slugify(businessName)
     
     // Check if slug exists
-    const { data: existingTenant } = await adminClient
+    const { data: existingSlug } = await adminClient
       .from('tenants')
       .select('id')
       .eq('slug', slug)
       .maybeSingle()
 
-    const finalSlug = existingTenant ? `${slug}-${Date.now()}` : slug
+    const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug
 
     // Definir plano completo por padrão
     const defaultPlan = PLAN_COMPLETO // 'completo'
