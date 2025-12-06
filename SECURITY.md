@@ -90,3 +90,5 @@ Para verificar e remover usuários não autorizados:
 - [ ] Implementar sistema de aprovação manual de contas
 - [ ] Adicionar notificações de novos registros para admin
 
+
+

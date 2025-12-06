@@ -43,7 +43,7 @@ export default function LandingPage() {
     {
       icon: MessageSquare,
       title: 'Notificações WhatsApp Automáticas',
-      description: 'Integração com WhatsApp para confirmações, lembretes 24h e 1h antes, e mensagens personalizadas. Reduza faltas em até 70%!',
+      description: 'Integração com WhatsApp para confirmações, lembretes 24h e 1h antes, e mensagens personalizadas. Reduza faltas em até 90%!',
     },
     {
       icon: Bell,
@@ -94,7 +94,7 @@ export default function LandingPage() {
 
   const benefits = [
     {
-      stat: '70%',
+      stat: '90%',
       label: 'Redução em faltas e no-shows',
       icon: TrendingUp,
     },
@@ -207,7 +207,7 @@ export default function LandingPage() {
     {
       feature: 'Lembretes manuais',
       without: '30-50% de faltas, horas perdidas ligando',
-      with: '70% menos faltas, lembretes 100% automáticos',
+      with: '90% menos faltas, lembretes 100% automáticos',
     },
     {
       feature: 'Controle financeiro',
@@ -276,11 +276,6 @@ export default function LandingPage() {
                   Entrar
                 </Button>
               </Link>
-              <Link href="/register">
-                <Button className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600">
-                  Começar Agora
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
@@ -294,7 +289,7 @@ export default function LandingPage() {
         <div className="relative max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-gray-300 mb-8">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Mais de 500 salões já transformaram sua gestão
+            Mais de 500 negócios já transformaram sua gestão
           </div>
           
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
@@ -305,21 +300,13 @@ export default function LandingPage() {
           </h1>
           
           <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-3xl mx-auto">
-            Sistema completo de agendamento online para salões, barbearias, spas e clínicas de estética. 
-            <span className="block mt-2 text-white font-semibold">Reduza faltas em até 70% e economize 5+ horas por semana</span>
+            Sistema completo de agendamento online para qualquer tipo de negócio que trabalha com agendamentos. 
+            <span className="block mt-2 text-white font-semibold">Reduza faltas em até 90% e economize 5+ horas por semana</span>
           </p>
 
           {/* Video Demo */}
           <VideoDemo />
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/register">
-              <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-lg px-8 py-6 shadow-lg shadow-violet-500/25">
-                Começar Agora
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -378,12 +365,6 @@ export default function LandingPage() {
             <p className="text-xl text-white font-semibold mb-4">
               Está na Hora de Mudar Isso. Para Sempre.
             </p>
-            <Link href="/register">
-              <Button size="lg" className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600">
-                Começar Agora
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
@@ -697,17 +678,9 @@ export default function LandingPage() {
               Pronto Para Transformar Seu Negócio?
             </h2>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              Junte-se a centenas de profissionais que já <span className="text-white font-semibold">automatizaram sua gestão, reduziram faltas em 70%</span> e economizaram horas toda semana.
+              Junte-se a centenas de profissionais que já <span className="text-white font-semibold">automatizaram sua gestão, reduziram faltas em 90%</span> e economizaram horas toda semana.
             </p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-              <Link href="/register">
-                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-xl px-12 py-7 shadow-lg shadow-violet-500/25">
-                  🚀 Começar Agora
-                  <ArrowRight className="ml-2 h-6 w-6" />
-                </Button>
-              </Link>
-            </div>
 
             <div className="mt-8 pt-8 border-t border-white/10">
               <p className="text-gray-400 text-sm italic">
