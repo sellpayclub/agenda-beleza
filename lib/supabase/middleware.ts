@@ -1,6 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -37,6 +36,9 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Verificar domínio customizado (apenas em runtime, não durante build)
+  // Desabilitado temporariamente para evitar erros de middleware
+  // TODO: Reabilitar quando domínios customizados forem necessários
+  /*
   try {
     const hostname = request.headers.get('host') || ''
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
@@ -48,7 +50,7 @@ export async function updateSession(request: NextRequest) {
                            !hostname.includes('vercel.app') &&
                            hostname !== baseHost
     
-    if (isCustomDomain) {
+    if (isCustomDomain && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       // Buscar tenant pelo domínio customizado
       const adminSupabase = createAdminClient()
       const { data: tenant, error } = await adminSupabase
@@ -73,6 +75,7 @@ export async function updateSession(request: NextRequest) {
     // Ignorar erros durante build ou se não houver conexão com banco
     console.error('Error checking custom domain:', error)
   }
+  */
 
   // Protected routes
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
