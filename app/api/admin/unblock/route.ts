@@ -13,30 +13,25 @@ export async function GET(request: Request) {
 
   const supabase = createAdminClient() as any
 
-  // Find tenant by admin email
-  const { data: user } = await supabase
-    .from('users')
-    .select('tenant_id')
-    .eq('email', 'personaldann@gmail.com')
-    .single()
-
-  if (!user) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 })
-  }
-
-  // Unblock tenant - set to active
-  const { error } = await supabase
+  // Unblock tenant by email directly
+  const { data, error } = await supabase
     .from('tenants')
     .update({ subscription_status: 'active' })
-    .eq('id', user.tenant_id)
+    .eq('email', 'personaldann@gmail.com')
+    .select()
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ 
-    success: true, 
-    message: 'Tenant unblocked successfully',
-    tenant_id: user.tenant_id 
-  })
+  if (data && data.length > 0) {
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Tenant desbloqueado com sucesso!',
+      tenant: data[0].name,
+      status: data[0].subscription_status
+    })
+  }
+
+  return NextResponse.json({ error: 'Tenant não encontrado' }, { status: 404 })
 }
