@@ -12,13 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { updateTenantProfile, updateTenantSettings } from '@/lib/actions/tenant'
 import { toast } from 'sonner'
-import { Loader2, Copy, ExternalLink, Palette, Settings, Bell, Link as LinkIcon, Upload, X, Image as ImageIcon, Globe, ChevronDown, ChevronUp, CheckCircle, AlertCircle } from 'lucide-react'
+import { Loader2, Copy, ExternalLink, Palette, Settings, Bell, Link as LinkIcon, Upload, X, Image as ImageIcon } from 'lucide-react'
 import type { Tenant, TenantSettingsRow } from '@/types'
 import { useTenant } from '@/hooks/use-tenant'
 import { hasFeature, FEATURES } from '@/lib/utils/plan-features'
 import { FeatureGate } from '@/components/dashboard/feature-gate'
 import { getBookingLink } from '@/lib/utils/domain'
-import { DNSStatus } from '@/components/dashboard/dns-status'
 
 interface ConfiguracoesClientProps {
   tenant: Tenant & { tenant_settings: TenantSettingsRow[] | TenantSettingsRow | null }
@@ -33,7 +32,6 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [logoUrl, setLogoUrl] = useState(tenant.logo_url || '')
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [dnsInstructionsOpen, setDnsInstructionsOpen] = useState(false)
   
   const [profileData, setProfileData] = useState({
     name: tenant.name,
@@ -46,7 +44,6 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     facebook: tenant.facebook || '',
     primary_color: tenant.primary_color,
     secondary_color: tenant.secondary_color,
-    custom_domain: (tenant as any).custom_domain || '',
   })
 
   const [settingsData, setSettingsData] = useState({
@@ -395,160 +392,6 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
                         placeholder="URL da página"
                       />
                     </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Domínio Personalizado</h3>
-                  <div className="space-y-2">
-                    <Label htmlFor="custom_domain">Seu Domínio</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="custom_domain"
-                        value={profileData.custom_domain}
-                        onChange={(e) =>
-                          setProfileData({ ...profileData, custom_domain: e.target.value })
-                        }
-                        placeholder="seudominio.com.br"
-                        disabled={!hasFeature((tenant as any)?.subscription_plan, FEATURES.CUSTOM_DOMAIN)}
-                      />
-                      <Globe className="w-4 h-4 text-gray-400" />
-                    </div>
-                    {!hasFeature((tenant as any)?.subscription_plan, FEATURES.CUSTOM_DOMAIN) ? (
-                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-xs text-amber-800">
-                          <strong>Domínio personalizado disponível apenas no Plano Completo.</strong> Faça upgrade para usar seu próprio domínio.
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        {profileData.custom_domain && (
-                          <div className="mt-4">
-                            <button
-                              type="button"
-                              onClick={() => setDnsInstructionsOpen(!dnsInstructionsOpen)}
-                              className="flex items-center justify-between w-full p-3 bg-violet-50 border border-violet-200 rounded-lg hover:bg-violet-100 transition-colors"
-                            >
-                              <span className="font-medium text-violet-900">
-                                {dnsInstructionsOpen ? 'Ocultar' : 'Mostrar'} Instruções de Configuração DNS
-                              </span>
-                              {dnsInstructionsOpen ? (
-                                <ChevronUp className="w-4 h-4 text-violet-600" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4 text-violet-600" />
-                              )}
-                            </button>
-
-                            {dnsInstructionsOpen && (
-                              <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg space-y-4">
-                                <div>
-                                  <h4 className="font-semibold text-gray-900 mb-3">Como Configurar o DNS</h4>
-                                  <p className="text-sm text-gray-600 mb-4">
-                                    Para que seu domínio funcione, você precisa configurar um registro CNAME no seu provedor de DNS (onde você comprou o domínio).
-                                  </p>
-                                </div>
-
-                                <div className="space-y-3">
-                                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                    <p className="text-xs font-semibold text-gray-700 mb-2">Passo 1: Acesse o painel do seu provedor de DNS</p>
-                                    <p className="text-xs text-gray-600">
-                                      Entre no painel de controle do seu domínio (Registro.br, GoDaddy, Namecheap, etc.)
-                                    </p>
-                                  </div>
-
-                                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                    <p className="text-xs font-semibold text-gray-700 mb-2">Passo 2: Adicione um registro CNAME</p>
-                                    <div className="space-y-2 mt-2">
-                                      <div className="flex items-center gap-2 text-xs">
-                                        <span className="font-medium text-gray-700 w-20">Tipo:</span>
-                                        <Badge variant="outline" className="text-xs">CNAME</Badge>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-xs">
-                                        <span className="font-medium text-gray-700 w-20">Nome:</span>
-                                        <code className="px-2 py-1 bg-gray-100 rounded text-gray-800">@</code>
-                                        <span className="text-gray-500">ou</span>
-                                        <code className="px-2 py-1 bg-gray-100 rounded text-gray-800">www</code>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-xs">
-                                        <span className="font-medium text-gray-700 w-20">Valor:</span>
-                                        <code className="px-2 py-1 bg-gray-100 rounded text-gray-800 flex-1">
-                                          cname.vercel-dns.com
-                                        </code>
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 px-2"
-                                          onClick={() => {
-                                            navigator.clipboard.writeText('cname.vercel-dns.com')
-                                            toast.success('Valor copiado!')
-                                          }}
-                                        >
-                                          <Copy className="w-3 h-3" />
-                                        </Button>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-xs">
-                                        <span className="font-medium text-gray-700 w-20">TTL:</span>
-                                        <code className="px-2 py-1 bg-gray-100 rounded text-gray-800">3600</code>
-                                        <span className="text-gray-500">(ou automático)</span>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                    <div className="flex items-start gap-2">
-                                      <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                                      <div className="text-xs text-blue-800">
-                                        <p className="font-semibold mb-1">Importante:</p>
-                                        <ul className="list-disc list-inside space-y-1 ml-2">
-                                          <li>A propagação DNS pode levar de 5 minutos a 48 horas</li>
-                                          <li>Use o botão "Verificar DNS" abaixo para checar se está configurado</li>
-                                          <li>Se usar subdomínio (ex: agendamento.seudominio.com), use o subdomínio como nome</li>
-                                        </ul>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                                    <div className="flex items-start gap-2">
-                                      <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                                      <div className="text-xs text-emerald-800">
-                                        <p className="font-semibold mb-1">Exemplo de Configuração:</p>
-                                        <div className="mt-2 font-mono text-xs bg-white p-2 rounded border">
-                                          <div>Tipo: <strong>CNAME</strong></div>
-                                          <div>Nome: <strong>@</strong></div>
-                                          <div>Valor: <strong>cname.vercel-dns.com</strong></div>
-                                          <div>TTL: <strong>3600</strong></div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {!profileData.custom_domain && (
-                          <p className="text-xs text-gray-500">
-                            Configure o DNS do seu domínio apontando para este sistema. Salve o domínio primeiro para ver as instruções.
-                          </p>
-                        )}
-                      </>
-                    )}
-                    {!profileData.custom_domain && (
-                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-xs text-blue-800">
-                          <strong>Domínio padrão:</strong> {typeof window !== 'undefined' ? window.location.origin : ''}/b/{tenant.slug}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* DNS Status Component */}
-                    {profileData.custom_domain && hasFeature((tenant as any)?.subscription_plan, FEATURES.CUSTOM_DOMAIN) && (
-                      <DNSStatus domain={profileData.custom_domain} />
-                    )}
                   </div>
                 </div>
 

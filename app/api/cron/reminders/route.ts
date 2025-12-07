@@ -33,10 +33,10 @@ export async function GET(request: NextRequest) {
       testMode: isTestMode,
     })
 
-    // Improved logic: More precise time windows
-    // 24 hours reminder: appointments between 23.5-24.5 hours from now (1 hour window)
-    const reminder24hStart = addHours(now, 23.5)
-    const reminder24hEnd = addHours(now, 24.5)
+    // Improved logic: More precise time windows (cron runs every 30 minutes)
+    // 24 hours reminder: appointments between 23.75-24.25 hours from now (30 min window)
+    const reminder24hStart = addHours(now, 23.75)
+    const reminder24hEnd = addHours(now, 24.25)
 
     // 1 hour reminder: appointments between 0.75-1.25 hours from now (30 min window)
     const reminder1hStart = addHours(now, 0.75)
