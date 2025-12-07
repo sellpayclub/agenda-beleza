@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { addMonths, addDays } from 'date-fns'
 import { PLAN_START, PLAN_COMPLETO } from '@/lib/utils/plan-features'
 import { revalidatePath } from 'next/cache'
+import { slugify } from '@/lib/utils/format'
 
 // Tipos para os eventos da Lastlink
 interface LastlinkWebhookPayload {
@@ -175,12 +176,188 @@ export async function POST(request: Request) {
       }, { status: 500 })
     }
 
-    // Se não encontrou tenant, pode ser um novo usuário
-    // Vamos logar mas não criar automaticamente (o usuário precisa se cadastrar)
+    // Se não encontrou tenant e é uma compra confirmada, CRIAR automaticamente
     if (!tenant) {
       console.log('Tenant not found for email:', buyerEmail)
       
-      // Salvar o evento para processamento posterior
+      // Só criar automaticamente se for evento de compra confirmada
+      if (payload.Event === EVENTS.PURCHASE_CONFIRMED || payload.Event === EVENTS.ACCESS_STARTED) {
+        console.log('Creating new tenant/user automatically for:', buyerEmail)
+        
+        const buyerName = payload.Data?.Buyer?.Name || buyerEmail.split('@')[0]
+        const buyerPhone = payload.Data?.Buyer?.PhoneNumber || ''
+        const productName = payload.Data?.Products?.[0]?.Name
+        const identifiedPlan = identifyPlan(productName) || PLAN_COMPLETO
+        
+        // Gerar slug único
+        const baseSlug = slugify(buyerName || 'negocio')
+        const uniqueSlug = `${baseSlug}-${Date.now()}`
+        
+        try {
+          // 1. Criar tenant
+          const { data: newTenant, error: createTenantError } = await supabase
+            .from('tenants')
+            .insert({
+              name: buyerName,
+              slug: uniqueSlug,
+              email: buyerEmail.toLowerCase(),
+              phone: buyerPhone,
+              subscription_plan: identifiedPlan,
+              subscription_status: 'active',
+              subscription_expires_at: addMonths(new Date(), 1).toISOString(),
+            })
+            .select()
+            .single()
+          
+          if (createTenantError) {
+            console.error('Error creating tenant:', createTenantError)
+            throw createTenantError
+          }
+          
+          console.log('Tenant created:', newTenant.id)
+          
+          // 2. Criar usuário no Supabase Auth
+          // Gerar senha temporária aleatória (usuário vai resetar depois)
+          const tempPassword = `Temp${Date.now()}!${Math.random().toString(36).slice(2, 10)}`
+          
+          const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+            email: buyerEmail.toLowerCase(),
+            password: tempPassword,
+            email_confirm: true, // Já confirmar o email
+            user_metadata: {
+              name: buyerName,
+            },
+          })
+          
+          if (authError) {
+            console.error('Error creating auth user:', authError)
+            // Se falhou por email já existir, tentar buscar o usuário existente
+            if (authError.message?.includes('already') || authError.message?.includes('exists')) {
+              console.log('User already exists in auth, trying to link...')
+              const { data: existingUsers } = await supabase.auth.admin.listUsers()
+              const existingUser = existingUsers?.users?.find(u => u.email === buyerEmail.toLowerCase())
+              
+              if (existingUser) {
+                // Criar registro na tabela users
+                await supabase
+                  .from('users')
+                  .insert({
+                    id: existingUser.id,
+                    tenant_id: newTenant.id,
+                    role: 'admin',
+                    name: buyerName,
+                    email: buyerEmail.toLowerCase(),
+                    phone: buyerPhone,
+                  })
+                  .catch(e => console.log('User record may already exist:', e.message))
+              }
+            } else {
+              throw authError
+            }
+          } else if (authData?.user) {
+            // 3. Criar registro na tabela users
+            const { error: userError } = await supabase
+              .from('users')
+              .insert({
+                id: authData.user.id,
+                tenant_id: newTenant.id,
+                role: 'admin',
+                name: buyerName,
+                email: buyerEmail.toLowerCase(),
+                phone: buyerPhone,
+              })
+            
+            if (userError) {
+              console.error('Error creating user record:', userError)
+            }
+            
+            console.log('User created:', authData.user.id)
+          }
+          
+          // 4. Criar configurações padrão do tenant
+          await supabase
+            .from('tenant_settings')
+            .insert({ tenant_id: newTenant.id })
+            .catch(e => console.log('Settings may already exist:', e.message))
+          
+          // 5. Criar funcionário padrão (admin)
+          if (authData?.user) {
+            await supabase
+              .from('employees')
+              .insert({
+                tenant_id: newTenant.id,
+                user_id: authData.user.id,
+                name: buyerName,
+                email: buyerEmail.toLowerCase(),
+                phone: buyerPhone,
+                is_active: true,
+              })
+              .catch(e => console.log('Employee may already exist:', e.message))
+          }
+          
+          // 6. Enviar email de reset de senha para o usuário definir sua senha
+          const { error: resetError } = await supabase.auth.admin.generateLink({
+            type: 'recovery',
+            email: buyerEmail.toLowerCase(),
+            options: {
+              redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://agendamento-agendify.com'}/dashboard`,
+            },
+          })
+          
+          if (resetError) {
+            console.error('Error sending reset password email:', resetError)
+            // Não falhar por isso, usuário pode usar "Esqueci minha senha"
+          } else {
+            console.log('Password reset email sent to:', buyerEmail)
+          }
+          
+          // Log evento processado
+          await supabase
+            .from('webhook_logs')
+            .insert({
+              source: 'lastlink',
+              event_id: payload.Id,
+              event: payload.Event,
+              payload: payload,
+              buyer_email: buyerEmail,
+              tenant_id: newTenant.id,
+              processed: true,
+            })
+            .catch(() => {})
+          
+          console.log(`✅ New user created automatically: ${buyerEmail} (Tenant: ${newTenant.id}, Plan: ${identifiedPlan})`)
+          
+          return NextResponse.json({
+            success: true,
+            message: 'New tenant and user created automatically',
+            tenantId: newTenant.id,
+            plan: identifiedPlan,
+          })
+          
+        } catch (createError: any) {
+          console.error('Error creating new user:', createError)
+          
+          // Log do erro
+          await supabase
+            .from('webhook_logs')
+            .insert({
+              source: 'lastlink',
+              event: payload.Event,
+              payload: payload,
+              buyer_email: buyerEmail,
+              processed: false,
+              error: createError.message || 'Error creating user',
+            })
+            .catch(() => {})
+          
+          return NextResponse.json({
+            success: false,
+            error: 'Error creating user automatically',
+          }, { status: 500 })
+        }
+      }
+      
+      // Para outros eventos, apenas logar
       await supabase
         .from('webhook_logs')
         .insert({
@@ -189,9 +366,9 @@ export async function POST(request: Request) {
           payload: payload,
           buyer_email: buyerEmail,
           processed: false,
-          error: 'Tenant not found',
+          error: 'Tenant not found for non-purchase event',
         })
-        .catch(() => {}) // Ignorar se tabela não existe
+        .catch(() => {})
       
       return NextResponse.json({ 
         success: true, 
