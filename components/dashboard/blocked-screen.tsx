@@ -28,21 +28,24 @@ interface BlockedScreenProps {
 
 const plans = [
   {
-    id: 'trial',
-    name: 'Trial',
-    price: 'Grátis',
-    period: '7 dias',
-    description: 'Teste o sistema gratuitamente',
-    icon: Sparkles,
-    color: 'from-gray-500 to-gray-600',
-    popular: false,
+    id: 'lifetime',
+    name: 'Vitalício',
+    price: 'R$ 147',
+    period: 'único',
+    description: 'MELHOR CUSTO-BENEFÍCIO',
+    icon: Crown,
+    color: 'from-amber-500 to-yellow-500',
+    popular: true,
     features: [
-      { name: 'Agendamentos ilimitados', icon: Calendar },
-      { name: 'Gestão de clientes', icon: Users },
-      { name: 'Notificações básicas', icon: Bell },
+      { name: 'Tudo do Plano Completo', icon: Check },
+      { name: 'Acesso vitalício', icon: Crown },
+      { name: 'Sem mensalidades', icon: Wallet },
+      { name: 'Atualizações incluídas', icon: Zap },
+      { name: 'Suporte prioritário', icon: MessageSquare },
     ],
-    cta: 'Período expirado',
-    disabled: true,
+    cta: '🔥 Comprar Acesso Vitalício',
+    paymentLink: 'https://lastlink.com/p/CC28B8DD0/checkout-payment',
+    disabled: false,
   },
   {
     id: 'start',
@@ -52,7 +55,7 @@ const plans = [
     description: 'Para quem está começando',
     icon: Zap,
     color: 'from-violet-500 to-pink-500',
-    popular: true,
+    popular: false,
     features: [
       { name: 'Agendamentos ilimitados', icon: Calendar },
       { name: 'Gestão de clientes', icon: Users },
@@ -69,8 +72,8 @@ const plans = [
     price: 'R$ 19,90',
     period: '/mês',
     description: 'Todos os recursos disponíveis',
-    icon: Crown,
-    color: 'from-amber-500 to-orange-500',
+    icon: Sparkles,
+    color: 'from-emerald-500 to-teal-500',
     popular: false,
     features: [
       { name: 'Tudo do Plano Start', icon: Check },
@@ -85,24 +88,21 @@ const plans = [
     disabled: false,
   },
   {
-    id: 'lifetime',
-    name: 'Vitalício',
-    price: 'R$ 147',
-    period: 'único',
-    description: 'Pague uma vez, use para sempre',
-    icon: Sparkles,
-    color: 'from-emerald-500 to-teal-500',
+    id: 'trial',
+    name: 'Trial',
+    price: 'Grátis',
+    period: '7 dias',
+    description: 'Teste o sistema gratuitamente',
+    icon: Bell,
+    color: 'from-gray-500 to-gray-600',
     popular: false,
     features: [
-      { name: 'Tudo do Plano Completo', icon: Check },
-      { name: 'Acesso vitalício', icon: Crown },
-      { name: 'Sem mensalidades', icon: Wallet },
-      { name: 'Atualizações incluídas', icon: Zap },
-      { name: 'Suporte prioritário', icon: MessageSquare },
+      { name: 'Agendamentos ilimitados', icon: Calendar },
+      { name: 'Gestão de clientes', icon: Users },
+      { name: 'Notificações básicas', icon: Bell },
     ],
-    cta: 'Comprar Acesso Vitalício',
-    paymentLink: 'https://lastlink.com/p/CC28B8DD0/checkout-payment',
-    disabled: false,
+    cta: 'Período expirado',
+    disabled: true,
   },
 ]
 
@@ -174,13 +174,13 @@ export function BlockedScreen({ tenantName }: BlockedScreenProps) {
                 <Card 
                   key={plan.id}
                   className={`relative bg-gray-900/50 border-white/10 backdrop-blur overflow-hidden ${
-                    plan.popular ? 'ring-2 ring-violet-500' : ''
+                    plan.popular ? 'ring-2 ring-amber-400 scale-105 shadow-xl shadow-amber-500/20' : ''
                   } ${plan.disabled ? 'opacity-60' : ''}`}
                 >
                   {plan.popular && (
                     <div className="absolute top-0 right-0">
-                      <Badge className="rounded-none rounded-bl-lg bg-gradient-to-r from-violet-500 to-pink-500 text-white border-0">
-                        Mais Popular
+                      <Badge className="rounded-none rounded-bl-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-bold border-0 px-3 py-1">
+                        ⭐ RECOMENDADO
                       </Badge>
                     </div>
                   )}
