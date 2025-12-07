@@ -18,6 +18,23 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email('Email inválido'),
 })
 
+export const resetPasswordSchema = z.object({
+  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'As senhas não conferem',
+  path: ['confirmPassword'],
+})
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
+  newPassword: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
+  confirmPassword: z.string(),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: 'As senhas não conferem',
+  path: ['confirmPassword'],
+})
+
 // Service validations
 export const serviceSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -105,6 +122,8 @@ export const scheduleBlockSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
 export type ServiceInput = z.infer<typeof serviceSchema>
 export type EmployeeInput = z.infer<typeof employeeSchema>
 export type ClientInput = z.infer<typeof clientSchema>

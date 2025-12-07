@@ -6,17 +6,9 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  // Se as variáveis não estão definidas, apenas continuar
-  if (!supabaseUrl || !supabaseKey) {
-    return supabaseResponse
-  }
-
   const supabase = createServerClient(
-    supabaseUrl,
-    supabaseKey,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -35,6 +27,10 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // Do not run code between createServerClient and
+  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
+  // issues with users being randomly logged out.
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -45,6 +41,8 @@ export async function updateSession(request: NextRequest) {
                      request.nextUrl.pathname.startsWith('/forgot-password')
   
   const isDashboardPage = request.nextUrl.pathname.startsWith('/dashboard')
+  const isPublicPage = request.nextUrl.pathname.startsWith('/b/') || 
+                       request.nextUrl.pathname === '/'
 
   // Redirecionar para login se não autenticado e tentando acessar dashboard
   if (!user && isDashboardPage) {
@@ -62,3 +60,4 @@ export async function updateSession(request: NextRequest) {
 
   return supabaseResponse
 }
+

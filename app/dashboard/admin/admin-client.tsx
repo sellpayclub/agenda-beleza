@@ -62,6 +62,7 @@ import {
   Eye,
   RefreshCw,
   ExternalLink,
+  Ban,
 } from 'lucide-react'
 import {
   updateTenantSubscription,
@@ -121,6 +122,11 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
     label: 'Expirado',
     color: 'bg-amber-100 text-amber-700',
     icon: <AlertTriangle className="w-4 h-4" />,
+  },
+  blocked: {
+    label: 'Bloqueado',
+    color: 'bg-gray-800 text-white',
+    icon: <Ban className="w-4 h-4" />,
   },
 }
 
@@ -198,7 +204,7 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
 
     const result = await updateTenantSubscription(
       statusTenant.id, 
-      newStatus as 'trial' | 'active' | 'cancelled' | 'expired',
+      newStatus as 'trial' | 'active' | 'cancelled' | 'expired' | 'blocked',
       undefined,
       newPlan
     )
@@ -331,6 +337,7 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
                 <SelectItem value="trial">Trial</SelectItem>
                 <SelectItem value="cancelled">Cancelados</SelectItem>
                 <SelectItem value="expired">Expirados</SelectItem>
+                <SelectItem value="blocked">Bloqueados</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={handleSearch} disabled={isSearching}>
@@ -534,6 +541,7 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
                   <SelectItem value="active">Ativo</SelectItem>
                   <SelectItem value="cancelled">Cancelado</SelectItem>
                   <SelectItem value="expired">Expirado</SelectItem>
+                  <SelectItem value="blocked">Bloqueado (Não pagou)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

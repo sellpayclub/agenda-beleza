@@ -12,18 +12,30 @@ export interface TenantSubscription {
 export function isSubscriptionActive(tenant: TenantSubscription | null): {
   active: boolean
   expired: boolean
+  blocked: boolean
   reason?: string
 } {
   if (!tenant) {
     return {
       active: false,
       expired: true,
+      blocked: false,
       reason: 'Tenant não encontrado',
     }
   }
 
   const status = tenant.subscription_status
   const expiresAt = tenant.subscription_expires_at
+
+  // Verificar se está bloqueado (prioridade máxima)
+  if (status === 'blocked') {
+    return {
+      active: false,
+      expired: false,
+      blocked: true,
+      reason: 'Conta bloqueada por falta de pagamento',
+    }
+  }
 
   // Verificar se está expirado
   if (expiresAt) {
@@ -32,16 +44,18 @@ export function isSubscriptionActive(tenant: TenantSubscription | null): {
       return {
         active: false,
         expired: true,
+        blocked: false,
         reason: 'Assinatura expirada',
       }
     }
   }
 
   // Verificar status
-  if (status !== 'active') {
+  if (status !== 'active' && status !== 'trial') {
     return {
       active: false,
       expired: status === 'expired',
+      blocked: false,
       reason: `Assinatura ${status}`,
     }
   }
@@ -49,8 +63,18 @@ export function isSubscriptionActive(tenant: TenantSubscription | null): {
   return {
     active: true,
     expired: false,
+    blocked: false,
   }
 }
+
+/**
+ * Verifica se o tenant está bloqueado
+ */
+export function isTenantBlocked(tenant: TenantSubscription | null): boolean {
+  if (!tenant) return false
+  return tenant.subscription_status === 'blocked'
+}
+
 
 
 

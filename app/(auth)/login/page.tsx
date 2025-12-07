@@ -58,43 +58,7 @@ export default function LoginPage() {
       <Card className="relative w-full max-w-md bg-gray-900/50 border-white/10 backdrop-blur">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            {/* Logo Agendify */}
-            <div className="relative w-12 h-12 rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center overflow-hidden">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="absolute"
-              >
-                <rect
-                  x="2"
-                  y="4"
-                  width="16"
-                  height="14"
-                  rx="2"
-                  fill="url(#calendarGradientLogin)"
-                />
-                <rect x="4" y="2" width="3" height="2" rx="1" fill="url(#calendarGradientLogin)" />
-                <rect x="9" y="2" width="3" height="2" rx="1" fill="url(#calendarGradientLogin)" />
-                <path
-                  d="M6 10L8.5 12.5L14 7"
-                  stroke="#1e3a8a"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-                <defs>
-                  <linearGradient id="calendarGradientLogin" x1="0" y1="0" x2="0" y2="20">
-                    <stop offset="0%" stopColor="#8b5cf6" />
-                    <stop offset="100%" stopColor="#ec4899" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <span className="font-bold text-white text-xl">Agendify</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500" />
           </div>
           <CardTitle className="text-2xl text-white">Bem-vindo de volta</CardTitle>
           <CardDescription className="text-gray-400">
@@ -164,6 +128,15 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-gray-400">
+              Não tem uma conta?{' '}
+              <Link href="/register" className="text-violet-400 hover:text-violet-300">
+                Criar conta
+              </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -7,17 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { updateTenantProfile, updateTenantSettings } from '@/lib/actions/tenant'
+import { changePasswordLoggedIn } from '@/lib/actions/auth'
 import { toast } from 'sonner'
-import { Loader2, Copy, ExternalLink, Palette, Settings, Bell, Link as LinkIcon, Upload, X, Image as ImageIcon } from 'lucide-react'
+import { Loader2, Copy, ExternalLink, Palette, Settings, Bell, Link as LinkIcon, Upload, X, Image as ImageIcon, User, Lock, Eye, EyeOff } from 'lucide-react'
 import type { Tenant, TenantSettingsRow } from '@/types'
-import { useTenant } from '@/hooks/use-tenant'
-import { hasFeature, FEATURES } from '@/lib/utils/plan-features'
-import { FeatureGate } from '@/components/dashboard/feature-gate'
-import { getBookingLink } from '@/lib/utils/domain'
 
 interface ConfiguracoesClientProps {
   tenant: Tenant & { tenant_settings: TenantSettingsRow[] | TenantSettingsRow | null }
@@ -32,6 +29,18 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [logoUrl, setLogoUrl] = useState(tenant.logo_url || '')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // Password change state
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
   
   const [profileData, setProfileData] = useState({
     name: tenant.name,
@@ -55,26 +64,7 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     cancellation_policy: settings?.cancellation_policy || '',
   })
 
-  // Carregar preferências de notificação do banco (apenas WhatsApp)
-  const defaultNotificationPrefs = {
-    whatsappConfirmation: true,
-    whatsappReminder24h: true,
-    whatsappReminder1h: true,
-  }
-  
-  const savedNotificationPrefs = (settings?.notification_preferences as any) || {}
-  
-  const [notificationPrefs, setNotificationPrefs] = useState({
-    whatsappConfirmation: savedNotificationPrefs.whatsappConfirmation ?? defaultNotificationPrefs.whatsappConfirmation,
-    whatsappReminder24h: savedNotificationPrefs.whatsappReminder24h ?? defaultNotificationPrefs.whatsappReminder24h,
-    whatsappReminder1h: savedNotificationPrefs.whatsappReminder1h ?? defaultNotificationPrefs.whatsappReminder1h,
-  })
-  
-  const [savingNotifications, setSavingNotifications] = useState(false)
-
-  const publicUrl = typeof window !== 'undefined' 
-    ? getBookingLink(tenant)
-    : `/b/${tenant.slug}`
+  const publicUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/b/${tenant.slug}`
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(publicUrl)
@@ -107,22 +97,6 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     }
 
     setLoading(false)
-  }
-
-  const handleNotificationsSubmit = async () => {
-    setSavingNotifications(true)
-
-    const result = await updateTenantSettings({
-      notification_preferences: notificationPrefs
-    })
-    
-    if (result.error) {
-      toast.error(result.error)
-    } else {
-      toast.success('Preferências de notificação salvas com sucesso!')
-    }
-
-    setSavingNotifications(false)
   }
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,6 +164,42 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     }
   }
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('As senhas não conferem')
+      return
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('A nova senha deve ter pelo menos 6 caracteres')
+      return
+    }
+
+    setChangingPassword(true)
+    
+    try {
+      const formData = new FormData()
+      formData.append('currentPassword', passwordData.currentPassword)
+      formData.append('newPassword', passwordData.newPassword)
+      
+      const result = await changePasswordLoggedIn(formData)
+      
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Senha alterada com sucesso!')
+        setPasswordDialogOpen(false)
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      }
+    } catch (error) {
+      toast.error('Erro ao alterar senha')
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -240,6 +250,10 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="h-4 w-4" />
             Notificações
+          </TabsTrigger>
+          <TabsTrigger value="account" className="gap-2">
+            <User className="h-4 w-4" />
+            Conta
           </TabsTrigger>
         </TabsList>
 
@@ -630,106 +644,198 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
         <TabsContent value="notifications">
           <Card>
             <CardHeader>
-              <CardTitle>Notificações WhatsApp</CardTitle>
+              <CardTitle>Configurações de Notificações</CardTitle>
               <CardDescription>
-                Configure as notificações automáticas por WhatsApp para seus clientes
+                Configure as notificações automáticas por email e WhatsApp
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <p className="text-sm text-emerald-800">
-                  <strong>📱 WhatsApp Automático:</strong> As mensagens são enviadas automaticamente via Evolution API com todos os dados do agendamento: nome, serviço, profissional, data, horário e valor.
-                </p>
-              </div>
-
               <div className="space-y-4">
-                <h3 className="font-medium text-lg">✅ Confirmação de Agendamento</h3>
-                <p className="text-sm text-gray-500 -mt-2">
-                  Enviada imediatamente quando o cliente faz um agendamento
-                </p>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
+                <h3 className="font-medium">Confirmação de Agendamento</h3>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
                   <div>
-                    <Label className="font-medium">WhatsApp de Confirmação</Label>
+                    <Label>Email de Confirmação</Label>
                     <p className="text-sm text-gray-500">
-                      Enviar mensagem com todos os detalhes do agendamento
+                      Enviar email quando um agendamento é criado
                     </p>
                   </div>
-                  <Switch 
-                    checked={notificationPrefs.whatsappConfirmation}
-                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, whatsappConfirmation: checked})}
-                  />
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                  <div>
+                    <Label>WhatsApp de Confirmação</Label>
+                    <p className="text-sm text-gray-500">
+                      Enviar mensagem no WhatsApp quando um agendamento é criado
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
                 </div>
               </div>
 
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="font-medium text-lg">⏰ Lembretes Automáticos</h3>
-                <p className="text-sm text-gray-500 -mt-2">
-                  Enviados automaticamente antes do horário agendado (cron a cada 30 min)
-                </p>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
+                <h3 className="font-medium">Lembretes</h3>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
                   <div>
-                    <Label className="font-medium">Lembrete 24 horas antes</Label>
+                    <Label>Lembrete 24h antes (Email)</Label>
                     <p className="text-sm text-gray-500">
-                      Lembrar o cliente um dia antes do agendamento
+                      Enviar lembrete por email 24 horas antes
                     </p>
                   </div>
-                  <Switch 
-                    checked={notificationPrefs.whatsappReminder24h}
-                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, whatsappReminder24h: checked})}
-                  />
+                  <Switch defaultChecked />
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
                   <div>
-                    <Label className="font-medium">Lembrete 1 hora antes</Label>
+                    <Label>Lembrete 24h antes (WhatsApp)</Label>
                     <p className="text-sm text-gray-500">
-                      Lembrar o cliente uma hora antes do agendamento
+                      Enviar lembrete por WhatsApp 24 horas antes
                     </p>
                   </div>
-                  <Switch 
-                    checked={notificationPrefs.whatsappReminder1h}
-                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, whatsappReminder1h: checked})}
-                  />
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                  <div>
+                    <Label>Lembrete 1h antes (WhatsApp)</Label>
+                    <p className="text-sm text-gray-500">
+                      Enviar lembrete por WhatsApp 1 hora antes
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
                 </div>
               </div>
 
-              <Separator />
-
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-800 mb-2">📱 Exemplo de mensagem de lembrete:</h4>
-                <div className="text-sm text-blue-900 bg-white p-3 rounded border border-blue-200 font-mono whitespace-pre-line text-xs">
-{`⏰ *Lembrete de Agendamento*
-
-Olá Maria! 👋
-
-Passando para lembrar do seu agendamento *amanhã*:
-
-📋 *Serviço:* Corte de Cabelo
-👤 *Profissional:* João Silva
-📅 *Data:* segunda-feira, 15 de janeiro
-⏰ *Horário:* 14:30
-💰 *Valor:* R$ 50,00
-
-📍 *Endereço:* Rua Exemplo, 123
-
-🔗 *Precisa reagendar ou cancelar?*
-[Link automático]
-
-Estamos esperando você! 😊
-
-_${tenant.name}_`}
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleNotificationsSubmit}
-                disabled={savingNotifications}
-                className="bg-gradient-to-r from-violet-500 to-pink-500 w-full"
-              >
-                {savingNotifications ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {savingNotifications ? 'Salvando...' : 'Salvar Preferências de Notificação'}
+              <Button className="bg-gradient-to-r from-violet-500 to-pink-500">
+                Salvar Preferências
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Account Tab */}
+        <TabsContent value="account">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configurações da Conta</CardTitle>
+              <CardDescription>
+                Gerencie suas credenciais de acesso
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-gray-500" />
+                    <Label className="text-base font-medium">Senha</Label>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Altere sua senha de acesso ao sistema
+                  </p>
+                </div>
+                <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      Trocar Senha
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Trocar Senha</DialogTitle>
+                      <DialogDescription>
+                        Digite sua senha atual e a nova senha desejada
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="currentPassword">Senha Atual</Label>
+                        <div className="relative">
+                          <Input
+                            id="currentPassword"
+                            type={showCurrentPassword ? 'text' : 'password'}
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                            placeholder="••••••••"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">Nova Senha</Label>
+                        <div className="relative">
+                          <Input
+                            id="newPassword"
+                            type={showNewPassword ? 'text' : 'password'}
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                            placeholder="••••••••"
+                            required
+                            minLength={6}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500">Mínimo de 6 caracteres</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                        <div className="relative">
+                          <Input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                            placeholder="••••••••"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setPasswordDialogOpen(false)}
+                          className="flex-1"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={changingPassword}
+                          className="flex-1 bg-gradient-to-r from-violet-500 to-pink-500"
+                        >
+                          {changingPassword ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            'Alterar Senha'
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
