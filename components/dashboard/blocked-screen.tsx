@@ -84,6 +84,26 @@ const plans = [
     paymentLink: 'https://lastlink.com/p/CA4E66B8C/subscribe-checkout',
     disabled: false,
   },
+  {
+    id: 'lifetime',
+    name: 'Vitalício',
+    price: 'R$ 147',
+    period: 'único',
+    description: 'Pague uma vez, use para sempre',
+    icon: Sparkles,
+    color: 'from-emerald-500 to-teal-500',
+    popular: false,
+    features: [
+      { name: 'Tudo do Plano Completo', icon: Check },
+      { name: 'Acesso vitalício', icon: Crown },
+      { name: 'Sem mensalidades', icon: Wallet },
+      { name: 'Atualizações incluídas', icon: Zap },
+      { name: 'Suporte prioritário', icon: MessageSquare },
+    ],
+    cta: 'Comprar Acesso Vitalício',
+    paymentLink: 'https://lastlink.com/p/CC28B8DD0/checkout-payment',
+    disabled: false,
+  },
 ]
 
 export function BlockedScreen({ tenantName }: BlockedScreenProps) {
@@ -142,12 +162,12 @@ export function BlockedScreen({ tenantName }: BlockedScreenProps) {
         </div>
 
         {/* Plans */}
-        <div className="w-full max-w-5xl">
+        <div className="w-full max-w-6xl">
           <h3 className="text-xl font-semibold text-white text-center mb-8">
             Escolha um plano para desbloquear sua conta
           </h3>
           
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {plans.map((plan) => {
               const Icon = plan.icon
               return (
