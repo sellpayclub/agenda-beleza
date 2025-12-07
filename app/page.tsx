@@ -593,80 +593,100 @@ export default function LandingPage() {
 
           {/* Planos Mensais */}
           <div className="text-center mb-8">
-            <p className="text-gray-400">Ou escolha um plano mensal (cartão de crédito):</p>
+            <p className="text-gray-400 text-lg">Ou escolha um plano mensal:</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Plano Start */}
-            <div className="relative p-6 rounded-2xl bg-white/5 border border-white/10">
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-bold text-white mb-2">Plano Start</h3>
+            <div className="relative p-8 rounded-2xl bg-gradient-to-b from-violet-500/20 to-pink-500/20 border-2 border-violet-500/50 shadow-xl">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-white mb-4">Plano Start</h3>
                 <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-4xl font-bold text-white">R$ 9,90</span>
-                  <span className="text-lg text-gray-400">/mês</span>
+                  <span className="text-5xl font-bold text-white">R$ 9,90</span>
+                  <span className="text-xl text-gray-400">/mês</span>
                 </div>
-                <p className="text-gray-400 text-sm">Recursos básicos</p>
+                <p className="text-gray-400 text-sm">
+                  Agendamento, notificações e clientes
+                </p>
               </div>
 
-              <div className="space-y-2 mb-6">
+              <div className="space-y-3 mb-8">
                 {planFeaturesStart.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-400 text-sm">{feature.label}</span>
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-emerald-400" />
+                    </div>
+                    <span className="text-gray-300 text-sm">{feature.label}</span>
                   </div>
                 ))}
               </div>
 
-              <a 
-                href="https://lastlink.com/p/C80E6C97B/checkout-payment/" 
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full border-white/20 text-white hover:bg-white/10"
+              <div className="text-center">
+                <a 
+                  href="https://lastlink.com/p/C80E6C97B/checkout-payment/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Assinar Mensal
-                </Button>
-              </a>
-              <p className="text-gray-500 text-xs text-center mt-2">💳 Apenas cartão de crédito</p>
+                  <Button
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white text-lg px-8 py-6 shadow-lg shadow-violet-500/25 mb-3"
+                  >
+                    🚀 Assinar Plano Start
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </a>
+                <p className="text-gray-400 text-xs">
+                  💳 Cartão de crédito • Cancele quando quiser
+                </p>
+              </div>
             </div>
 
             {/* Plano Completo Mensal */}
-            <div className="relative p-6 rounded-2xl bg-white/5 border border-white/10">
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-bold text-white mb-2">Plano Completo</h3>
+            <div className="relative p-8 rounded-2xl bg-gradient-to-b from-pink-500/20 to-violet-500/20 border-2 border-pink-500/50 shadow-xl">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-white mb-4">Plano Completo</h3>
                 <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-4xl font-bold text-white">R$ 19,90</span>
-                  <span className="text-lg text-gray-400">/mês</span>
+                  <span className="text-5xl font-bold text-white">R$ 19,90</span>
+                  <span className="text-xl text-gray-400">/mês</span>
                 </div>
-                <p className="text-gray-400 text-sm">Todos os recursos</p>
+                <p className="text-emerald-400 font-semibold mb-1">
+                  💎 Todos os recursos premium
+                </p>
+                <p className="text-gray-400 text-sm">
+                  Para negócios que querem o máximo
+                </p>
               </div>
 
-              <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
+              <div className="space-y-3 mb-8">
                 {planFeaturesCompleto.slice(0, 8).map((feature, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-400 text-sm">{feature.label}</span>
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-emerald-400" />
+                    </div>
+                    <span className="text-gray-300 text-sm">{feature.label}</span>
                   </div>
                 ))}
+                <p className="text-violet-400 text-sm text-center">+ mais recursos...</p>
               </div>
 
-              <a 
-                href="https://lastlink.com/p/C449B720D/checkout-payment/" 
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full border-white/20 text-white hover:bg-white/10"
+              <div className="text-center">
+                <a 
+                  href="https://lastlink.com/p/C449B720D/checkout-payment/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Assinar Mensal
-                </Button>
-              </a>
-              <p className="text-gray-500 text-xs text-center mt-2">💳 Apenas cartão de crédito</p>
+                  <Button
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white text-lg px-8 py-6 shadow-lg shadow-pink-500/25 mb-3"
+                  >
+                    🚀 Assinar Plano Completo
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </a>
+                <p className="text-gray-400 text-xs">
+                  💳 Cartão de crédito • Cancele quando quiser
+                </p>
+              </div>
             </div>
           </div>
 
