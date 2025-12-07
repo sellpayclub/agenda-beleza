@@ -161,20 +161,23 @@ _${tenant.name}_`
 
 function getReminderWhatsAppMessage(details: AppointmentDetails, hoursBeforeText: string): string {
   const { appointment, client, employee, service, tenant } = details
+  const appointmentDate = format(new Date(appointment.start_time), "EEEE, dd 'de' MMMM", { locale: ptBR })
   const appointmentTime = format(new Date(appointment.start_time), 'HH:mm')
   const manageLink = getManageLink(tenant, appointment.id)
 
   return `⏰ *Lembrete de Agendamento*
 
-Olá ${client.name}!
+Olá ${client.name}! 👋
 
-Seu agendamento é *${hoursBeforeText}* às *${appointmentTime}*.
+Passando para lembrar do seu agendamento *${hoursBeforeText}*:
 
 📋 *Serviço:* ${service.name}
 👤 *Profissional:* ${employee.name}
+📅 *Data:* ${appointmentDate}
+⏰ *Horário:* ${appointmentTime}
+💰 *Valor:* ${formatCurrency(service.price)}
 
-${tenant.address ? `📍 *Endereço:* ${tenant.address}` : ''}
-
+${tenant.address ? `📍 *Endereço:* ${tenant.address}\n` : ''}
 🔗 *Precisa reagendar ou cancelar?*
 ${manageLink}
 

@@ -55,6 +55,27 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     cancellation_policy: settings?.cancellation_policy || '',
   })
 
+  // Carregar preferências de notificação do banco
+  const defaultNotificationPrefs = {
+    emailConfirmation: true,
+    whatsappConfirmation: true,
+    emailReminder24h: true,
+    whatsappReminder24h: true,
+    whatsappReminder1h: true,
+  }
+  
+  const savedNotificationPrefs = (settings?.notification_preferences as any) || {}
+  
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    emailConfirmation: savedNotificationPrefs.emailConfirmation ?? defaultNotificationPrefs.emailConfirmation,
+    whatsappConfirmation: savedNotificationPrefs.whatsappConfirmation ?? defaultNotificationPrefs.whatsappConfirmation,
+    emailReminder24h: savedNotificationPrefs.emailReminder24h ?? defaultNotificationPrefs.emailReminder24h,
+    whatsappReminder24h: savedNotificationPrefs.whatsappReminder24h ?? defaultNotificationPrefs.whatsappReminder24h,
+    whatsappReminder1h: savedNotificationPrefs.whatsappReminder1h ?? defaultNotificationPrefs.whatsappReminder1h,
+  })
+  
+  const [savingNotifications, setSavingNotifications] = useState(false)
+
   const publicUrl = typeof window !== 'undefined' 
     ? getBookingLink(tenant)
     : `/b/${tenant.slug}`
@@ -90,6 +111,22 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     }
 
     setLoading(false)
+  }
+
+  const handleNotificationsSubmit = async () => {
+    setSavingNotifications(true)
+
+    const result = await updateTenantSettings({
+      notification_preferences: notificationPrefs
+    })
+    
+    if (result.error) {
+      toast.error(result.error)
+    } else {
+      toast.success('Preferências de notificação salvas com sucesso!')
+    }
+
+    setSavingNotifications(false)
   }
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -599,67 +636,124 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
             <CardHeader>
               <CardTitle>Configurações de Notificações</CardTitle>
               <CardDescription>
-                Configure as notificações automáticas por email e WhatsApp
+                Configure as notificações automáticas por email e WhatsApp para seus clientes
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>💡 Dica:</strong> As mensagens são enviadas automaticamente com os dados do agendamento: nome do cliente, serviço, profissional, data, horário e valor.
+                </p>
+              </div>
+
               <div className="space-y-4">
-                <h3 className="font-medium">Confirmação de Agendamento</h3>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                <h3 className="font-medium text-lg">📩 Confirmação de Agendamento</h3>
+                <p className="text-sm text-gray-500 -mt-2">
+                  Enviada imediatamente quando o cliente faz um agendamento
+                </p>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
                   <div>
-                    <Label>Email de Confirmação</Label>
+                    <Label className="font-medium">Email de Confirmação</Label>
                     <p className="text-sm text-gray-500">
-                      Enviar email quando um agendamento é criado
+                      Enviar email com detalhes do agendamento
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={notificationPrefs.emailConfirmation}
+                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, emailConfirmation: checked})}
+                  />
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
                   <div>
-                    <Label>WhatsApp de Confirmação</Label>
+                    <Label className="font-medium">WhatsApp de Confirmação</Label>
                     <p className="text-sm text-gray-500">
-                      Enviar mensagem no WhatsApp quando um agendamento é criado
+                      Enviar mensagem no WhatsApp com detalhes completos
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={notificationPrefs.whatsappConfirmation}
+                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, whatsappConfirmation: checked})}
+                  />
                 </div>
               </div>
 
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="font-medium">Lembretes</h3>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                <h3 className="font-medium text-lg">⏰ Lembretes Automáticos</h3>
+                <p className="text-sm text-gray-500 -mt-2">
+                  Enviados automaticamente antes do horário agendado
+                </p>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
                   <div>
-                    <Label>Lembrete 24h antes (Email)</Label>
+                    <Label className="font-medium">Lembrete 24h antes (Email)</Label>
                     <p className="text-sm text-gray-500">
-                      Enviar lembrete por email 24 horas antes
+                      Lembrar o cliente por email um dia antes
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={notificationPrefs.emailReminder24h}
+                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, emailReminder24h: checked})}
+                  />
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
                   <div>
-                    <Label>Lembrete 24h antes (WhatsApp)</Label>
+                    <Label className="font-medium">Lembrete 24h antes (WhatsApp)</Label>
                     <p className="text-sm text-gray-500">
-                      Enviar lembrete por WhatsApp 24 horas antes
+                      Lembrar o cliente por WhatsApp um dia antes
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={notificationPrefs.whatsappReminder24h}
+                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, whatsappReminder24h: checked})}
+                  />
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
                   <div>
-                    <Label>Lembrete 1h antes (WhatsApp)</Label>
+                    <Label className="font-medium">Lembrete 1h antes (WhatsApp)</Label>
                     <p className="text-sm text-gray-500">
-                      Enviar lembrete por WhatsApp 1 hora antes
+                      Lembrar o cliente por WhatsApp uma hora antes
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={notificationPrefs.whatsappReminder1h}
+                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, whatsappReminder1h: checked})}
+                  />
                 </div>
               </div>
 
-              <Button className="bg-gradient-to-r from-violet-500 to-pink-500">
-                Salvar Preferências
+              <Separator />
+
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <h4 className="font-medium text-emerald-800 mb-2">✅ Exemplo de mensagem WhatsApp:</h4>
+                <div className="text-sm text-emerald-700 bg-white p-3 rounded border border-emerald-200 font-mono whitespace-pre-line">
+{`⏰ *Lembrete de Agendamento*
+
+Olá Maria!
+
+Seu agendamento é *amanhã* às *14:30*.
+
+📋 *Serviço:* Corte de Cabelo
+👤 *Profissional:* João Silva
+
+📍 *Endereço:* Rua Exemplo, 123
+
+🔗 *Precisa reagendar ou cancelar?*
+[Link para gerenciar]
+
+Estamos esperando você! 😊
+
+_${tenant.name}_`}
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleNotificationsSubmit}
+                disabled={savingNotifications}
+                className="bg-gradient-to-r from-violet-500 to-pink-500 w-full"
+              >
+                {savingNotifications ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {savingNotifications ? 'Salvando...' : 'Salvar Preferências de Notificação'}
               </Button>
             </CardContent>
           </Card>
