@@ -73,7 +73,7 @@ const EVENTS = {
 }
 
 // Token de validação da LastLink
-const LASTLINK_TOKEN = 'f3fb63d1240846d6b1a7485ec6a47e26'
+const LASTLINK_TOKEN = '344953d8183d4b63bb28a05add32e8d3'
 
 /**
  * Identifica o plano baseado no nome do produto da LastLink
