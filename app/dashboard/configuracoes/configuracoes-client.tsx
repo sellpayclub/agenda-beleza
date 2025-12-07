@@ -55,11 +55,9 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     cancellation_policy: settings?.cancellation_policy || '',
   })
 
-  // Carregar preferências de notificação do banco
+  // Carregar preferências de notificação do banco (apenas WhatsApp)
   const defaultNotificationPrefs = {
-    emailConfirmation: true,
     whatsappConfirmation: true,
-    emailReminder24h: true,
     whatsappReminder24h: true,
     whatsappReminder1h: true,
   }
@@ -67,9 +65,7 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
   const savedNotificationPrefs = (settings?.notification_preferences as any) || {}
   
   const [notificationPrefs, setNotificationPrefs] = useState({
-    emailConfirmation: savedNotificationPrefs.emailConfirmation ?? defaultNotificationPrefs.emailConfirmation,
     whatsappConfirmation: savedNotificationPrefs.whatsappConfirmation ?? defaultNotificationPrefs.whatsappConfirmation,
-    emailReminder24h: savedNotificationPrefs.emailReminder24h ?? defaultNotificationPrefs.emailReminder24h,
     whatsappReminder24h: savedNotificationPrefs.whatsappReminder24h ?? defaultNotificationPrefs.whatsappReminder24h,
     whatsappReminder1h: savedNotificationPrefs.whatsappReminder1h ?? defaultNotificationPrefs.whatsappReminder1h,
   })
@@ -634,40 +630,28 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
         <TabsContent value="notifications">
           <Card>
             <CardHeader>
-              <CardTitle>Configurações de Notificações</CardTitle>
+              <CardTitle>Notificações WhatsApp</CardTitle>
               <CardDescription>
-                Configure as notificações automáticas por email e WhatsApp para seus clientes
+                Configure as notificações automáticas por WhatsApp para seus clientes
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>💡 Dica:</strong> As mensagens são enviadas automaticamente com os dados do agendamento: nome do cliente, serviço, profissional, data, horário e valor.
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <p className="text-sm text-emerald-800">
+                  <strong>📱 WhatsApp Automático:</strong> As mensagens são enviadas automaticamente via Evolution API com todos os dados do agendamento: nome, serviço, profissional, data, horário e valor.
                 </p>
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-medium text-lg">📩 Confirmação de Agendamento</h3>
+                <h3 className="font-medium text-lg">✅ Confirmação de Agendamento</h3>
                 <p className="text-sm text-gray-500 -mt-2">
                   Enviada imediatamente quando o cliente faz um agendamento
                 </p>
                 <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
                   <div>
-                    <Label className="font-medium">Email de Confirmação</Label>
-                    <p className="text-sm text-gray-500">
-                      Enviar email com detalhes do agendamento
-                    </p>
-                  </div>
-                  <Switch 
-                    checked={notificationPrefs.emailConfirmation}
-                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, emailConfirmation: checked})}
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
-                  <div>
                     <Label className="font-medium">WhatsApp de Confirmação</Label>
                     <p className="text-sm text-gray-500">
-                      Enviar mensagem no WhatsApp com detalhes completos
+                      Enviar mensagem com todos os detalhes do agendamento
                     </p>
                   </div>
                   <Switch 
@@ -682,25 +666,13 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
               <div className="space-y-4">
                 <h3 className="font-medium text-lg">⏰ Lembretes Automáticos</h3>
                 <p className="text-sm text-gray-500 -mt-2">
-                  Enviados automaticamente antes do horário agendado
+                  Enviados automaticamente antes do horário agendado (cron a cada 30 min)
                 </p>
                 <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
                   <div>
-                    <Label className="font-medium">Lembrete 24h antes (Email)</Label>
+                    <Label className="font-medium">Lembrete 24 horas antes</Label>
                     <p className="text-sm text-gray-500">
-                      Lembrar o cliente por email um dia antes
-                    </p>
-                  </div>
-                  <Switch 
-                    checked={notificationPrefs.emailReminder24h}
-                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, emailReminder24h: checked})}
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
-                  <div>
-                    <Label className="font-medium">Lembrete 24h antes (WhatsApp)</Label>
-                    <p className="text-sm text-gray-500">
-                      Lembrar o cliente por WhatsApp um dia antes
+                      Lembrar o cliente um dia antes do agendamento
                     </p>
                   </div>
                   <Switch 
@@ -710,9 +682,9 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
                 </div>
                 <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border">
                   <div>
-                    <Label className="font-medium">Lembrete 1h antes (WhatsApp)</Label>
+                    <Label className="font-medium">Lembrete 1 hora antes</Label>
                     <p className="text-sm text-gray-500">
-                      Lembrar o cliente por WhatsApp uma hora antes
+                      Lembrar o cliente uma hora antes do agendamento
                     </p>
                   </div>
                   <Switch 
@@ -724,22 +696,25 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
 
               <Separator />
 
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <h4 className="font-medium text-emerald-800 mb-2">✅ Exemplo de mensagem WhatsApp:</h4>
-                <div className="text-sm text-emerald-700 bg-white p-3 rounded border border-emerald-200 font-mono whitespace-pre-line">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium text-blue-800 mb-2">📱 Exemplo de mensagem de lembrete:</h4>
+                <div className="text-sm text-blue-900 bg-white p-3 rounded border border-blue-200 font-mono whitespace-pre-line text-xs">
 {`⏰ *Lembrete de Agendamento*
 
-Olá Maria!
+Olá Maria! 👋
 
-Seu agendamento é *amanhã* às *14:30*.
+Passando para lembrar do seu agendamento *amanhã*:
 
 📋 *Serviço:* Corte de Cabelo
 👤 *Profissional:* João Silva
+📅 *Data:* segunda-feira, 15 de janeiro
+⏰ *Horário:* 14:30
+💰 *Valor:* R$ 50,00
 
 📍 *Endereço:* Rua Exemplo, 123
 
 🔗 *Precisa reagendar ou cancelar?*
-[Link para gerenciar]
+[Link automático]
 
 Estamos esperando você! 😊
 
