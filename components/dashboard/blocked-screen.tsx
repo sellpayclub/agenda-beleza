@@ -231,3 +231,4 @@ export function BlockedScreen({ tenantName }: BlockedScreenProps) {
     </div>
   )
 }
+

@@ -11,3 +11,4 @@ CHECK (subscription_status IN ('trial', 'active', 'cancelled', 'expired', 'pendi
 
 -- Comentário explicativo
 COMMENT ON COLUMN tenants.subscription_status IS 'Status da assinatura: trial, active, cancelled, expired, pending, blocked. O status blocked é usado para bloquear manualmente usuários que não pagaram renovação.';
+
