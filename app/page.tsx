@@ -519,118 +519,162 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Plano Start */}
-            <div className="relative p-8 rounded-2xl bg-gradient-to-b from-violet-500/20 to-pink-500/20 border-2 border-violet-500/50 shadow-2xl shadow-violet-500/20">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium shadow-lg">
-                ⭐ Mais Popular
+          {/* PLANO VITALÍCIO - DESTAQUE PRINCIPAL */}
+          <div className="max-w-3xl mx-auto mb-12">
+            <div className="relative p-8 rounded-3xl bg-gradient-to-br from-amber-500/30 via-yellow-500/20 to-orange-500/30 border-4 border-amber-400 shadow-2xl shadow-amber-500/30">
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 px-8 py-3 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 text-lg font-bold shadow-lg animate-pulse">
+                🏆 MELHOR CUSTO-BENEFÍCIO
               </div>
               
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-white mb-4">Plano Start</h3>
+              <div className="text-center mb-8 pt-4">
+                <h3 className="text-3xl font-bold text-white mb-2">Plano Vitalício</h3>
+                <p className="text-amber-300 font-semibold text-lg mb-4">
+                  💎 Sistema completo PARA SEMPRE
+                </p>
                 <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-5xl font-bold text-white">R$ 9,90</span>
-                  <span className="text-xl text-gray-400">/mês</span>
+                  <span className="text-6xl font-bold text-white">R$ 147</span>
+                  <span className="text-xl text-amber-300">único</span>
                 </div>
-                <p className="text-gray-400 text-sm">
-                  Agendamento, notificações e clientes
-                </p>
-              </div>
-
-              <div className="space-y-3 mb-8">
-                {planFeaturesStart.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-emerald-400" />
-                    </div>
-                    <span className="text-gray-300 text-sm">{feature.label}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="text-center">
-                <a 
-                  href="https://lastlink.com/p/C80E6C97B/checkout-payment/" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button
-                    size="lg"
-                    className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-lg px-8 py-6 shadow-lg shadow-violet-500/25 mb-3"
-                  >
-                    🚀 Assinar Plano Start
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </a>
-                <p className="text-gray-400 text-xs">
-                  ✅ Pagamento seguro • Ative em 2 minutos
-                </p>
-              </div>
-            </div>
-
-            {/* Plano Completo */}
-            <div className="relative p-8 rounded-2xl bg-gradient-to-b from-pink-500/20 to-violet-500/20 border-2 border-pink-500/50 shadow-2xl shadow-pink-500/20">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 text-white text-sm font-medium shadow-lg">
-                🔥 Mais Completo
-              </div>
-              
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-white mb-4">Plano Completo</h3>
-                <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-5xl font-bold text-white">R$ 19,90</span>
-                  <span className="text-xl text-gray-400">/mês</span>
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <span className="text-gray-400 line-through">R$ 238,80/ano</span>
+                  <span className="px-3 py-1 bg-emerald-500 text-white text-sm font-bold rounded-full">ECONOMIZE 38%</span>
                 </div>
-                <p className="text-emerald-400 font-semibold text-lg mb-3">
-                  💎 Todos os recursos premium
+                <p className="text-emerald-400 font-semibold text-xl">
+                  ✨ Apenas R$ 12,25/mês dividido em 12x
                 </p>
-                <p className="text-gray-400 text-sm">
-                  Para negócios que querem o máximo
+                <p className="text-amber-200 text-sm mt-2">
+                  💳 Cartão ou PIX • Sem mensalidade • Sem reajustes
                 </p>
               </div>
 
-              <div className="space-y-3 mb-8">
+              <div className="grid md:grid-cols-2 gap-3 mb-8">
                 {planFeaturesCompleto.map((feature, index) => (
                   <div key={index} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-emerald-400" />
+                    <div className="w-5 h-5 rounded-full bg-amber-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-amber-400" />
                     </div>
-                    <span className="text-gray-300 text-sm">{feature.label}</span>
+                    <span className="text-gray-200 text-sm">{feature.label}</span>
                   </div>
                 ))}
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-emerald-400" />
+                  </div>
+                  <span className="text-emerald-300 text-sm font-semibold">🔒 Acesso vitalício garantido</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-emerald-400" />
+                  </div>
+                  <span className="text-emerald-300 text-sm font-semibold">📈 Sem reajuste de preço nunca</span>
+                </div>
               </div>
-
 
               <div className="text-center">
                 <a 
-                  href="https://lastlink.com/p/C449B720D/checkout-payment/" 
+                  href="https://lastlink.com/p/C563F06C1/checkout-payment/" 
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <Button
                     size="lg"
-                    className="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-lg px-8 py-6 shadow-lg shadow-pink-500/25 mb-3"
+                    className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-gray-900 text-xl font-bold px-8 py-8 shadow-xl shadow-amber-500/40 mb-3"
                   >
-                    🚀 Assinar Plano Completo
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    🚀 GARANTIR ACESSO VITALÍCIO
+                    <ArrowRight className="ml-2 h-6 w-6" />
                   </Button>
                 </a>
-                <p className="text-gray-400 text-xs">
-                  ✅ Pagamento seguro • Ative em 2 minutos
+                <p className="text-amber-200 text-sm">
+                  ✅ Pague uma vez, use para sempre • PIX ou Cartão em até 12x
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Planos Mensais */}
+          <div className="text-center mb-8">
+            <p className="text-gray-400">Ou escolha um plano mensal (cartão de crédito):</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Plano Start */}
+            <div className="relative p-6 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Plano Start</h3>
+                <div className="flex items-baseline justify-center gap-2 mb-2">
+                  <span className="text-4xl font-bold text-white">R$ 9,90</span>
+                  <span className="text-lg text-gray-400">/mês</span>
+                </div>
+                <p className="text-gray-400 text-sm">Recursos básicos</p>
+              </div>
+
+              <div className="space-y-2 mb-6">
+                {planFeaturesStart.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-400 text-sm">{feature.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <a 
+                href="https://lastlink.com/p/C80E6C97B/checkout-payment/" 
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full border-white/20 text-white hover:bg-white/10"
+                >
+                  Assinar Mensal
+                </Button>
+              </a>
+              <p className="text-gray-500 text-xs text-center mt-2">💳 Apenas cartão de crédito</p>
+            </div>
+
+            {/* Plano Completo Mensal */}
+            <div className="relative p-6 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Plano Completo</h3>
+                <div className="flex items-baseline justify-center gap-2 mb-2">
+                  <span className="text-4xl font-bold text-white">R$ 19,90</span>
+                  <span className="text-lg text-gray-400">/mês</span>
+                </div>
+                <p className="text-gray-400 text-sm">Todos os recursos</p>
+              </div>
+
+              <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
+                {planFeaturesCompleto.slice(0, 8).map((feature, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-400 text-sm">{feature.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <a 
+                href="https://lastlink.com/p/C449B720D/checkout-payment/" 
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full border-white/20 text-white hover:bg-white/10"
+                >
+                  Assinar Mensal
+                </Button>
+              </a>
+              <p className="text-gray-500 text-xs text-center mt-2">💳 Apenas cartão de crédito</p>
+            </div>
+          </div>
+
           <div className="mt-12 text-center">
-            <div className="inline-flex flex-wrap items-center justify-center gap-8 text-sm text-gray-400">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>Sem taxa de setup</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>Suporte em português</span>
-              </div>
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl max-w-2xl mx-auto">
+              <p className="text-amber-300 font-semibold">
+                💡 Dica: O Plano Vitalício paga-se em apenas 7 meses de uso comparado ao plano mensal completo!
+              </p>
             </div>
           </div>
         </div>
