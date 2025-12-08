@@ -7,7 +7,11 @@ import { getCurrentUser } from './auth'
 import { findOrCreateClient } from './clients'
 import { addMinutes, startOfDay, endOfDay, startOfMonth, endOfMonth, format } from 'date-fns'
 import type { AppointmentInsert, AppointmentUpdate, AppointmentStatus, PaymentStatus } from '@/types'
-import { sendConfirmationWhatsApp, sendPendingAppointmentWhatsApp, sendCancellationWhatsApp, sendAdminNewAppointmentNotification } from '@/lib/services/notifications'
+import {
+  sendConfirmationWhatsApp,
+  sendCancellationWhatsApp,
+  sendAdminNewAppointmentNotification,
+} from '@/lib/services/notifications'
 import { sendAppointmentToWebhook } from '@/lib/services/webhook-external'
 
 export async function getAppointments(filters?: {
@@ -273,9 +277,9 @@ export async function createAppointment(data: {
               console.error(`❌ Error sending WhatsApp confirmation for appointment ${appointment.id}:`, err)
             })
         } else {
-          // Send pending appointment message
+          // Send pending appointment message (using confirmation message for now)
           console.log(`📤 Sending pending appointment WhatsApp to ${appointment.client.phone} for appointment ${appointment.id}`)
-          sendPendingAppointmentWhatsApp(notificationDetails)
+          sendConfirmationWhatsApp(notificationDetails)
             .then((success) => {
               if (success) {
                 console.log(`✅ Pending appointment WhatsApp sent successfully for appointment ${appointment.id}`)
