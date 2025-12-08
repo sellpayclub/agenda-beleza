@@ -8,6 +8,7 @@ import { findOrCreateClient } from './clients'
 import { addMinutes, startOfDay, endOfDay, startOfMonth, endOfMonth, format } from 'date-fns'
 import type { AppointmentInsert, AppointmentUpdate, AppointmentStatus, PaymentStatus } from '@/types'
 import { sendConfirmationWhatsApp, sendPendingAppointmentWhatsApp, sendCancellationWhatsApp, sendAdminNewAppointmentNotification } from '@/lib/services/notifications'
+import { sendAppointmentToWebhook } from '@/lib/services/webhook-external'
 
 export async function getAppointments(filters?: {
   date?: Date
@@ -182,6 +183,36 @@ export async function createAppointment(data: {
   const tenant = tenantResult.data
   const tenantSettings = tenantSettingsResult.data
 
+  // Send appointment data to external webhook (for ALL appointments)
+  if (appointment && appointment.client && appointment.employee && appointment.service && tenant) {
+    console.log(`📤 Sending appointment ${appointment.id} to external webhook`)
+    sendAppointmentToWebhook({
+      appointment,
+      client: appointment.client,
+      employee: appointment.employee,
+      service: appointment.service,
+      tenant,
+    })
+      .then((success) => {
+        if (success) {
+          console.log(`✅ External webhook sent successfully for appointment ${appointment.id}`)
+        } else {
+          console.error(`❌ Failed to send external webhook for appointment ${appointment.id}`)
+        }
+      })
+      .catch((err) => {
+        console.error(`❌ Error sending external webhook for appointment ${appointment.id}:`, err)
+      })
+  } else {
+    console.warn(`⚠️ Cannot send to external webhook: Missing required data for appointment ${appointment.id}`, {
+      hasAppointment: !!appointment,
+      hasClient: !!appointment?.client,
+      hasEmployee: !!appointment?.employee,
+      hasService: !!appointment?.service,
+      hasTenant: !!tenant,
+    })
+  }
+
   // Send WhatsApp notification to client (always when enabled)
   if (tenant && appointment.client && appointment.employee && appointment.service) {
     // Validate required data for notifications
@@ -252,6 +283,7 @@ export async function createAppointment(data: {
             console.error(`❌ Error sending admin notification for appointment ${appointment.id}:`, err)
           })
       }
+
     }
   } else {
     console.warn(`⚠️ Cannot send notification: Missing required data for appointment ${appointment.id}`, {
