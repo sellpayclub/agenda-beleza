@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendReminderWhatsApp } from '@/lib/services/notifications'
-import { addHours } from 'date-fns'
+import { subHours, addMinutes, differenceInMinutes } from 'date-fns'
 
-// This endpoint should be called by a cron job every hour
+// This endpoint should be called by a cron job every 5 minutes for precise timing
 // For Vercel, you can use Vercel Cron or an external service like cron-job.org
 // URL: /api/cron/reminders
 // Method: GET
 // Header: Authorization: Bearer YOUR_CRON_SECRET
+// Schedule: */5 * * * * (every 5 minutes)
 
 export async function GET(request: NextRequest) {
   // Verify cron secret for security
@@ -22,14 +23,14 @@ export async function GET(request: NextRequest) {
     const supabase = createAdminClient() as any
     const now = new Date()
 
-    // Get appointments for reminders
-    // 24 hours reminder: appointments between 23-25 hours from now
-    const reminder24hStart = addHours(now, 23)
-    const reminder24hEnd = addHours(now, 25)
+    // Calculate exact times for reminders
+    // 24 hours before appointment: appointments that are 23h 55min to 24h 5min from now
+    const reminder24hStart = addMinutes(subHours(now, 24), -5)
+    const reminder24hEnd = addMinutes(subHours(now, 24), 5)
 
-    // 1 hour reminder: appointments between 0.5-1.5 hours from now
-    const reminder1hStart = addHours(now, 0.5)
-    const reminder1hEnd = addHours(now, 1.5)
+    // 1 hour before appointment: appointments that are 55min to 1h 5min from now
+    const reminder1hStart = addMinutes(subHours(now, 1), -5)
+    const reminder1hEnd = addMinutes(subHours(now, 1), 5)
 
     // Fetch appointments needing 24h reminder
     const result24h = await supabase
@@ -68,16 +69,25 @@ export async function GET(request: NextRequest) {
 
     // Send 24h reminders
     for (const apt of appointments24h) {
-      // Check if reminder already sent
+      // Verify all required data exists
+      if (!apt.client || !apt.client.phone || !apt.employee || !apt.service || !apt.tenant || !apt.tenant.whatsapp_instance) {
+        console.warn(`⚠️ Skipping appointment ${apt.id}: missing required data`)
+        continue
+      }
+
+      // Check if 24h reminder already sent for this appointment
       const existingResult = await supabase
         .from('notifications')
         .select('id')
         .eq('appointment_id', apt.id)
         .eq('type', 'whatsapp')
-        .ilike('message', '%24%')
+        .ilike('message', '%Lembrete 24h%')
         .maybeSingle()
 
-      if (existingResult.data) continue
+      if (existingResult.data) {
+        console.log(`⏭️ Reminder 24h already sent for appointment ${apt.id}`)
+        continue
+      }
 
       const details = {
         appointment: apt,
@@ -88,6 +98,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Send WhatsApp reminder
+      console.log(`📤 Sending 24h reminder for appointment ${apt.id}`)
       const success = await sendReminderWhatsApp(details, 'amanhã')
       if (success) {
         // Log notification
@@ -95,25 +106,37 @@ export async function GET(request: NextRequest) {
           appointment_id: apt.id,
           type: 'whatsapp',
           status: 'sent',
-          message: 'Lembrete 24h',
+          message: 'Lembrete 24h antes',
           sent_at: new Date().toISOString(),
         })
         sent24h++
+        console.log(`✅ 24h reminder sent successfully for appointment ${apt.id}`)
+      } else {
+        console.error(`❌ Failed to send 24h reminder for appointment ${apt.id}`)
       }
     }
 
     // Send 1h reminders
     for (const apt of appointments1h) {
-      // Check if reminder already sent
+      // Verify all required data exists
+      if (!apt.client || !apt.client.phone || !apt.employee || !apt.service || !apt.tenant || !apt.tenant.whatsapp_instance) {
+        console.warn(`⚠️ Skipping appointment ${apt.id}: missing required data`)
+        continue
+      }
+
+      // Check if 1h reminder already sent for this appointment
       const existingResult = await supabase
         .from('notifications')
         .select('id')
         .eq('appointment_id', apt.id)
         .eq('type', 'whatsapp')
-        .ilike('message', '%1h%')
+        .ilike('message', '%Lembrete 1h%')
         .maybeSingle()
 
-      if (existingResult.data) continue
+      if (existingResult.data) {
+        console.log(`⏭️ Reminder 1h already sent for appointment ${apt.id}`)
+        continue
+      }
 
       const details = {
         appointment: apt,
@@ -124,16 +147,20 @@ export async function GET(request: NextRequest) {
       }
 
       // Send WhatsApp reminder
+      console.log(`📤 Sending 1h reminder for appointment ${apt.id}`)
       const success = await sendReminderWhatsApp(details, 'em 1 hora')
       if (success) {
         await supabase.from('notifications').insert({
           appointment_id: apt.id,
           type: 'whatsapp',
           status: 'sent',
-          message: 'Lembrete 1h',
+          message: 'Lembrete 1h antes',
           sent_at: new Date().toISOString(),
         })
         sent1h++
+        console.log(`✅ 1h reminder sent successfully for appointment ${apt.id}`)
+      } else {
+        console.error(`❌ Failed to send 1h reminder for appointment ${apt.id}`)
       }
     }
 

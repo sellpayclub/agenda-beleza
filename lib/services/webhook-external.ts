@@ -66,9 +66,9 @@ export async function sendAppointmentToWebhook(data: AppointmentWebhookData): Pr
       timestamp: new Date().toISOString(),
     }
 
-    console.log(`📤 Sending appointment data to external webhook for appointment ${appointment?.id}`)
-    console.log(`Webhook URL: ${WEBHOOK_URL}`)
-    console.log(`Payload:`, JSON.stringify(payload, null, 2))
+    console.log(`📤 [WEBHOOK] Sending appointment data to external webhook for appointment ${appointment?.id}`)
+    console.log(`📤 [WEBHOOK] URL: ${WEBHOOK_URL}`)
+    console.log(`📤 [WEBHOOK] Payload:`, JSON.stringify(payload, null, 2))
 
     const response = await fetch(WEBHOOK_URL, {
       method: 'POST',
@@ -77,6 +77,8 @@ export async function sendAppointmentToWebhook(data: AppointmentWebhookData): Pr
         'Accept': 'application/json',
       },
       body: JSON.stringify(payload),
+      // Add timeout
+      signal: AbortSignal.timeout(30000), // 30 seconds timeout
     })
 
     if (!response.ok) {

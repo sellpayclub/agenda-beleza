@@ -184,8 +184,13 @@ export async function createAppointment(data: {
   const tenantSettings = tenantSettingsResult.data
 
   // Send appointment data to external webhook (for ALL appointments)
+  // IMPORTANT: This runs asynchronously and doesn't block the response
   if (appointment && appointment.client && appointment.employee && appointment.service && tenant) {
-    console.log(`📤 Sending appointment ${appointment.id} to external webhook`)
+    console.log(`📤 [WEBHOOK] Attempting to send appointment ${appointment.id} to external webhook`)
+    console.log(`📤 [WEBHOOK] Client: ${appointment.client?.name}, Service: ${appointment.service?.name}`)
+    console.log(`📤 [WEBHOOK] Tenant: ${tenant?.name}, URL: https://webhook.dcsaudeautomacao.com/webhook/agendamentorecebido`)
+    
+    // Send asynchronously but log everything
     sendAppointmentToWebhook({
       appointment,
       client: appointment.client,
@@ -195,16 +200,17 @@ export async function createAppointment(data: {
     })
       .then((success) => {
         if (success) {
-          console.log(`✅ External webhook sent successfully for appointment ${appointment.id}`)
+          console.log(`✅ [WEBHOOK] External webhook sent successfully for appointment ${appointment.id}`)
         } else {
-          console.error(`❌ Failed to send external webhook for appointment ${appointment.id}`)
+          console.error(`❌ [WEBHOOK] Failed to send external webhook for appointment ${appointment.id}`)
         }
       })
       .catch((err) => {
-        console.error(`❌ Error sending external webhook for appointment ${appointment.id}:`, err)
+        console.error(`❌ [WEBHOOK] Error sending external webhook for appointment ${appointment.id}:`, err)
+        console.error(`❌ [WEBHOOK] Error stack:`, err.stack)
       })
   } else {
-    console.warn(`⚠️ Cannot send to external webhook: Missing required data for appointment ${appointment.id}`, {
+    console.error(`❌ [WEBHOOK] Cannot send to external webhook: Missing required data for appointment ${appointment?.id}`, {
       hasAppointment: !!appointment,
       hasClient: !!appointment?.client,
       hasEmployee: !!appointment?.employee,

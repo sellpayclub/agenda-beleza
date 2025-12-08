@@ -136,32 +136,6 @@ ${bookingLink}
 _${tenant.name}_`
 }
 
-function getPendingAppointmentWhatsAppMessage(details: AppointmentDetails): string {
-  const { appointment, client, employee, service, tenant } = details
-  const appointmentDate = format(new Date(appointment.start_time), "EEEE, dd 'de' MMMM", { locale: ptBR })
-  const appointmentTime = format(new Date(appointment.start_time), 'HH:mm')
-  const manageLink = getManageLink(tenant, appointment.id)
-
-  return `📅 *Agendamento Recebido*
-
-Olá ${client.name}!
-
-Recebemos seu pedido de agendamento:
-
-📋 *Serviço:* ${service.name}
-👤 *Profissional:* ${employee.name}
-📅 *Data:* ${appointmentDate}
-⏰ *Horário:* ${appointmentTime}
-💰 *Valor:* ${formatCurrency(service.price)}
-
-⏳ *Aguardando confirmação do estabelecimento*
-
-🔗 *Acompanhar ou cancelar:*
-${manageLink}
-
-_${tenant.name}_`
-}
-
 // Main notification functions
 export async function sendConfirmationWhatsApp(details: AppointmentDetails): Promise<boolean> {
   const { client, tenant } = details
@@ -180,13 +154,6 @@ export async function sendReminderWhatsApp(details: AppointmentDetails, hoursBef
 export async function sendCancellationWhatsApp(details: AppointmentDetails): Promise<boolean> {
   const { client, tenant } = details
   const message = getCancellationWhatsAppMessage(details)
-  const instanceName = (tenant as any).whatsapp_instance
-  return sendWhatsAppMessage(client.phone, message, instanceName)
-}
-
-export async function sendPendingAppointmentWhatsApp(details: AppointmentDetails): Promise<boolean> {
-  const { client, tenant } = details
-  const message = getPendingAppointmentWhatsAppMessage(details)
   const instanceName = (tenant as any).whatsapp_instance
   return sendWhatsAppMessage(client.phone, message, instanceName)
 }

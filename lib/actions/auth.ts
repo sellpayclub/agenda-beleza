@@ -249,42 +249,7 @@ export async function updatePassword(formData: FormData) {
     return { error: error.message }
   }
 
-  return { success: true }
-}
-
-export async function changePasswordLoggedIn(formData: FormData) {
-  const supabase = await createClient() as any
-  
-  const currentPassword = formData.get('currentPassword') as string
-  const newPassword = formData.get('newPassword') as string
-
-  // Get current user email
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  
-  if (userError || !user?.email) {
-    return { error: 'Usuário não encontrado' }
-  }
-
-  // Verify current password by attempting to sign in
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: currentPassword,
-  })
-
-  if (signInError) {
-    return { error: 'Senha atual incorreta' }
-  }
-
-  // Update to new password
-  const { error: updateError } = await supabase.auth.updateUser({
-    password: newPassword,
-  })
-
-  if (updateError) {
-    return { error: updateError.message }
-  }
-
-  return { success: true }
+  redirect('/dashboard')
 }
 
 export async function getCurrentUser() {

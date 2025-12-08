@@ -33,7 +33,6 @@ export async function getAdminStats() {
     trial: tenants?.filter((t: any) => t.subscription_status === 'trial').length || 0,
     cancelled: tenants?.filter((t: any) => t.subscription_status === 'cancelled').length || 0,
     expired: tenants?.filter((t: any) => t.subscription_status === 'expired').length || 0,
-    blocked: tenants?.filter((t: any) => t.subscription_status === 'blocked').length || 0,
   }
 
   // Contar total de agendamentos
@@ -125,7 +124,7 @@ export async function getTenantDetails(tenantId: string) {
 // Atualizar status da assinatura (só para super admin)
 export async function updateTenantSubscription(
   tenantId: string,
-  status: 'trial' | 'active' | 'cancelled' | 'expired' | 'blocked',
+  status: 'trial' | 'active' | 'cancelled' | 'expired',
   expiresAt?: string,
   plan?: string
 ) {

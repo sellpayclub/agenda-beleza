@@ -9,11 +9,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { updateTenantProfile, updateTenantSettings } from '@/lib/actions/tenant'
-import { changePasswordLoggedIn } from '@/lib/actions/auth'
 import { toast } from 'sonner'
-import { Loader2, Copy, ExternalLink, Palette, Settings, Bell, Link as LinkIcon, Upload, X, Image as ImageIcon, User, Lock, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Copy, ExternalLink, Palette, Settings, Bell, Link as LinkIcon, Upload, X, Image as ImageIcon } from 'lucide-react'
 import type { Tenant, TenantSettingsRow } from '@/types'
 
 interface ConfiguracoesClientProps {
@@ -29,18 +27,6 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [logoUrl, setLogoUrl] = useState(tenant.logo_url || '')
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
-  // Password change state
-  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
-  const [changingPassword, setChangingPassword] = useState(false)
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  })
   
   const [profileData, setProfileData] = useState({
     name: tenant.name,
@@ -164,42 +150,6 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
     }
   }
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('As senhas não conferem')
-      return
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      toast.error('A nova senha deve ter pelo menos 6 caracteres')
-      return
-    }
-
-    setChangingPassword(true)
-    
-    try {
-      const formData = new FormData()
-      formData.append('currentPassword', passwordData.currentPassword)
-      formData.append('newPassword', passwordData.newPassword)
-      
-      const result = await changePasswordLoggedIn(formData)
-      
-      if (result.error) {
-        toast.error(result.error)
-      } else {
-        toast.success('Senha alterada com sucesso!')
-        setPasswordDialogOpen(false)
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
-      }
-    } catch (error) {
-      toast.error('Erro ao alterar senha')
-    } finally {
-      setChangingPassword(false)
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div>
@@ -250,10 +200,6 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="h-4 w-4" />
             Notificações
-          </TabsTrigger>
-          <TabsTrigger value="account" className="gap-2">
-            <User className="h-4 w-4" />
-            Conta
           </TabsTrigger>
         </TabsList>
 
@@ -708,134 +654,6 @@ export function ConfiguracoesClient({ tenant }: ConfiguracoesClientProps) {
               <Button className="bg-gradient-to-r from-violet-500 to-pink-500">
                 Salvar Preferências
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Account Tab */}
-        <TabsContent value="account">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações da Conta</CardTitle>
-              <CardDescription>
-                Gerencie suas credenciais de acesso
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Lock className="h-5 w-5 text-gray-500" />
-                    <Label className="text-base font-medium">Senha</Label>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Altere sua senha de acesso ao sistema
-                  </p>
-                </div>
-                <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">
-                      Trocar Senha
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Trocar Senha</DialogTitle>
-                      <DialogDescription>
-                        Digite sua senha atual e a nova senha desejada
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handlePasswordChange} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="currentPassword">Senha Atual</Label>
-                        <div className="relative">
-                          <Input
-                            id="currentPassword"
-                            type={showCurrentPassword ? 'text' : 'password'}
-                            value={passwordData.currentPassword}
-                            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                            placeholder="••••••••"
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          >
-                            {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="newPassword">Nova Senha</Label>
-                        <div className="relative">
-                          <Input
-                            id="newPassword"
-                            type={showNewPassword ? 'text' : 'password'}
-                            value={passwordData.newPassword}
-                            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                            placeholder="••••••••"
-                            required
-                            minLength={6}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowNewPassword(!showNewPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          >
-                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                        <p className="text-xs text-gray-500">Mínimo de 6 caracteres</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
-                        <div className="relative">
-                          <Input
-                            id="confirmPassword"
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            value={passwordData.confirmPassword}
-                            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                            placeholder="••••••••"
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          >
-                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2 pt-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setPasswordDialogOpen(false)}
-                          className="flex-1"
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={changingPassword}
-                          className="flex-1 bg-gradient-to-r from-violet-500 to-pink-500"
-                        >
-                          {changingPassword ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            'Alterar Senha'
-                          )}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
