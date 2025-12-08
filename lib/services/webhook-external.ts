@@ -66,9 +66,12 @@ export async function sendAppointmentToWebhook(data: AppointmentWebhookData): Pr
       timestamp: new Date().toISOString(),
     }
 
-    console.log(`📤 [WEBHOOK] Sending appointment data to external webhook for appointment ${appointment?.id}`)
+    console.log(`📤 [WEBHOOK] ===== PREPARANDO ENVIO =====`)
+    console.log(`📤 [WEBHOOK] Appointment ID: ${appointment?.id}`)
     console.log(`📤 [WEBHOOK] URL: ${WEBHOOK_URL}`)
-    console.log(`📤 [WEBHOOK] Payload:`, JSON.stringify(payload, null, 2))
+    console.log(`📤 [WEBHOOK] Payload completo:`)
+    console.log(JSON.stringify(payload, null, 2))
+    console.log(`📤 [WEBHOOK] Fazendo requisição POST...`)
 
     const response = await fetch(WEBHOOK_URL, {
       method: 'POST',
@@ -81,20 +84,32 @@ export async function sendAppointmentToWebhook(data: AppointmentWebhookData): Pr
       signal: AbortSignal.timeout(30000), // 30 seconds timeout
     })
 
+    console.log(`📥 [WEBHOOK] Resposta recebida:`)
+    console.log(`📥 [WEBHOOK] Status: ${response.status} ${response.statusText}`)
+    console.log(`📥 [WEBHOOK] Headers:`, Object.fromEntries(response.headers.entries()))
+
     if (!response.ok) {
       const errorText = await response.text()
-      console.error(`❌ Webhook request failed: ${response.status} ${response.statusText}`)
-      console.error(`Response: ${errorText}`)
+      console.error(`❌ [WEBHOOK] ===== FALHA NA REQUISIÇÃO =====`)
+      console.error(`❌ [WEBHOOK] Status: ${response.status} ${response.statusText}`)
+      console.error(`❌ [WEBHOOK] Response body: ${errorText}`)
       return false
     }
 
     const responseData = await response.text()
-    console.log(`✅ Webhook sent successfully for appointment ${appointment?.id}`)
-    console.log(`Response: ${responseData}`)
+    console.log(`✅ [WEBHOOK] ===== SUCESSO =====`)
+    console.log(`✅ [WEBHOOK] Appointment ${appointment?.id} enviado com sucesso!`)
+    console.log(`✅ [WEBHOOK] Response body: ${responseData}`)
     return true
   } catch (error: any) {
-    console.error(`❌ Error sending to external webhook for appointment ${appointment?.id}:`, error)
-    console.error(`Error message: ${error.message}`)
+    console.error(`\n❌ [WEBHOOK] ===== ERRO EXCEPCIONAL =====`)
+    console.error(`❌ [WEBHOOK] Appointment ID: ${appointment?.id}`)
+    console.error(`❌ [WEBHOOK] Tipo de erro: ${error?.name || 'Unknown'}`)
+    console.error(`❌ [WEBHOOK] Mensagem: ${error?.message || 'No message'}`)
+    console.error(`❌ [WEBHOOK] Stack:`, error?.stack)
+    if (error.cause) {
+      console.error(`❌ [WEBHOOK] Causa:`, error.cause)
+    }
     return false
   }
 }

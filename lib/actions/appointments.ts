@@ -184,13 +184,20 @@ export async function createAppointment(data: {
   const tenantSettings = tenantSettingsResult.data
 
   // Send appointment data to external webhook (for ALL appointments)
-  // IMPORTANT: This runs asynchronously and doesn't block the response
+  // This MUST run for every appointment created
   if (appointment && appointment.client && appointment.employee && appointment.service && tenant) {
-    console.log(`📤 [WEBHOOK] Attempting to send appointment ${appointment.id} to external webhook`)
-    console.log(`📤 [WEBHOOK] Client: ${appointment.client?.name}, Service: ${appointment.service?.name}`)
-    console.log(`📤 [WEBHOOK] Tenant: ${tenant?.name}, URL: https://webhook.dcsaudeautomacao.com/webhook/agendamentorecebido`)
+    console.log(`\n🚀 [WEBHOOK] ===== INICIANDO ENVIO PARA WEBHOOK =====`)
+    console.log(`📤 [WEBHOOK] Appointment ID: ${appointment.id}`)
+    console.log(`📤 [WEBHOOK] Cliente: ${appointment.client?.name} (${appointment.client?.phone})`)
+    console.log(`📤 [WEBHOOK] Serviço: ${appointment.service?.name}`)
+    console.log(`📤 [WEBHOOK] Funcionário: ${appointment.employee?.name}`)
+    console.log(`📤 [WEBHOOK] Tenant: ${tenant?.name}`)
+    console.log(`📤 [WEBHOOK] URL: https://webhook.dcsaudeautomacao.com/webhook/agendamentorecebido`)
+    console.log(`📤 [WEBHOOK] Status: ${appointment.status}`)
+    console.log(`📤 [WEBHOOK] Data: ${appointment.start_time}`)
     
-    // Send asynchronously but log everything
+    // Send to webhook (fire and forget - doesn't block response)
+    // But we log everything for debugging
     sendAppointmentToWebhook({
       appointment,
       client: appointment.client,
@@ -200,22 +207,32 @@ export async function createAppointment(data: {
     })
       .then((success) => {
         if (success) {
-          console.log(`✅ [WEBHOOK] External webhook sent successfully for appointment ${appointment.id}`)
+          console.log(`✅ [WEBHOOK] ===== ENVIO CONCLUÍDO COM SUCESSO =====`)
+          console.log(`✅ [WEBHOOK] Appointment ${appointment.id} enviado com sucesso ao webhook`)
         } else {
-          console.error(`❌ [WEBHOOK] Failed to send external webhook for appointment ${appointment.id}`)
+          console.error(`❌ [WEBHOOK] ===== FALHA NO ENVIO =====`)
+          console.error(`❌ [WEBHOOK] Falha ao enviar appointment ${appointment.id} ao webhook`)
         }
       })
       .catch((err) => {
-        console.error(`❌ [WEBHOOK] Error sending external webhook for appointment ${appointment.id}:`, err)
-        console.error(`❌ [WEBHOOK] Error stack:`, err.stack)
+        console.error(`❌ [WEBHOOK] ===== ERRO NO ENVIO =====`)
+        console.error(`❌ [WEBHOOK] Erro ao enviar appointment ${appointment.id} ao webhook:`)
+        console.error(`❌ [WEBHOOK] Mensagem: ${err.message}`)
+        console.error(`❌ [WEBHOOK] Stack:`, err.stack)
       })
   } else {
-    console.error(`❌ [WEBHOOK] Cannot send to external webhook: Missing required data for appointment ${appointment?.id}`, {
+    console.error(`\n❌ [WEBHOOK] ===== DADOS INCOMPLETOS - NÃO PODE ENVIAR =====`)
+    console.error(`❌ [WEBHOOK] Appointment ID: ${appointment?.id}`)
+    console.error(`❌ [WEBHOOK] Dados disponíveis:`, {
       hasAppointment: !!appointment,
       hasClient: !!appointment?.client,
       hasEmployee: !!appointment?.employee,
       hasService: !!appointment?.service,
       hasTenant: !!tenant,
+      clientName: appointment?.client?.name,
+      employeeName: appointment?.employee?.name,
+      serviceName: appointment?.service?.name,
+      tenantName: tenant?.name,
     })
   }
 
