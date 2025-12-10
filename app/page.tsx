@@ -572,7 +572,7 @@ export default function LandingPage() {
 
               <div className="text-center">
                 <a 
-                  href="https://lastlink.com/p/C563F06C1/checkout-payment/" 
+                  href="https://pay.cakto.com.br/yk2ptg6_683104" 
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -623,7 +623,7 @@ export default function LandingPage() {
 
               <div className="text-center">
                 <a 
-                  href="https://lastlink.com/p/C80E6C97B/checkout-payment/" 
+                  href="https://pay.cakto.com.br/poufkzs" 
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -671,7 +671,7 @@ export default function LandingPage() {
 
               <div className="text-center">
                 <a 
-                  href="https://lastlink.com/p/C449B720D/checkout-payment/" 
+                  href="https://pay.cakto.com.br/k6ccf3h" 
                   target="_blank"
                   rel="noopener noreferrer"
                 >
