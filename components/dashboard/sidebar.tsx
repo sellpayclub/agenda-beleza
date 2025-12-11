@@ -20,6 +20,8 @@ import {
   Ban,
   Wallet,
   Shield,
+  FileText,
+  TestTube,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -83,6 +85,16 @@ const menuItems = [
     label: 'WhatsApp',
     href: '/dashboard/whatsapp',
     icon: MessageSquare,
+  },
+  {
+    label: 'Mensagens',
+    href: '/dashboard/mensagens',
+    icon: FileText,
+  },
+  {
+    label: 'Testes',
+    href: '/dashboard/testes',
+    icon: TestTube,
   },
   // Assinatura removida - gerenciamento feito na LastLink
   {

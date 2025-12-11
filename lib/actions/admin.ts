@@ -261,3 +261,130 @@ export async function searchTenants(query?: string, status?: string) {
   return data || []
 }
 
+// Criar novo tenant (só para super admin)
+export async function createTenant(data: {
+  businessName: string
+  email: string
+  phone: string
+  password: string
+  adminName: string
+  status?: 'trial' | 'active' | 'cancelled' | 'expired'
+  plan?: string
+}) {
+  const isAdmin = await isSuperAdmin()
+  if (!isAdmin) return { error: 'Não autorizado' }
+
+  const supabase = createAdminClient() as any
+
+  try {
+    // Criar usuário no Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true, // Confirmar email automaticamente
+      user_metadata: {
+        name: data.adminName,
+      },
+    })
+
+    if (authError || !authData.user) {
+      console.error('Error creating auth user:', authError)
+      return { error: authError?.message || 'Erro ao criar usuário no sistema de autenticação' }
+    }
+
+    // Criar slug do tenant
+    const slugify = (text: string) => {
+      return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+    }
+
+    const baseSlug = slugify(data.businessName)
+    
+    // Verificar se slug existe
+    const { data: existingTenant } = await supabase
+      .from('tenants')
+      .select('id')
+      .eq('slug', baseSlug)
+      .maybeSingle()
+
+    const finalSlug = existingTenant ? `${baseSlug}-${Date.now()}` : baseSlug
+
+    // Criar tenant
+    const { data: tenant, error: tenantError } = await supabase
+      .from('tenants')
+      .insert({
+        name: data.businessName,
+        slug: finalSlug,
+        email: data.email,
+        phone: data.phone,
+        subscription_status: data.status || 'trial',
+        subscription_plan: data.plan || 'start',
+      })
+      .select()
+      .single()
+
+    if (tenantError || !tenant) {
+      // Se falhar, tentar deletar o usuário auth criado
+      await supabase.auth.admin.deleteUser(authData.user.id).catch(() => {})
+      console.error('Error creating tenant:', tenantError)
+      return { error: tenantError?.message || 'Erro ao criar tenant' }
+    }
+
+    // Criar registro de usuário
+    const { error: userError } = await supabase
+      .from('users')
+      .insert({
+        id: authData.user.id,
+        tenant_id: tenant.id,
+        role: 'admin',
+        name: data.adminName,
+        email: data.email,
+        phone: data.phone,
+      })
+
+    if (userError) {
+      console.error('Error creating user record:', userError)
+      // Não bloquear se falhar, pode ser que já exista
+    }
+
+    // Criar configurações padrão do tenant
+    const { error: settingsError } = await supabase
+      .from('tenant_settings')
+      .insert({
+        tenant_id: tenant.id,
+      })
+
+    if (settingsError) {
+      console.error('Error creating tenant settings:', settingsError)
+      // Não bloquear se falhar
+    }
+
+    // Criar funcionário padrão (admin como primeiro funcionário)
+    const { error: employeeError } = await supabase
+      .from('employees')
+      .insert({
+        tenant_id: tenant.id,
+        user_id: authData.user.id,
+        name: data.adminName,
+        email: data.email,
+        phone: data.phone,
+        is_active: true,
+      })
+
+    if (employeeError) {
+      console.error('Error creating default employee:', employeeError)
+      // Não bloquear se falhar
+    }
+
+    revalidatePath('/dashboard/admin')
+    return { success: true, data: tenant }
+  } catch (error: any) {
+    console.error('Error creating tenant:', error)
+    return { error: error?.message || 'Erro inesperado ao criar tenant' }
+  }
+}
+

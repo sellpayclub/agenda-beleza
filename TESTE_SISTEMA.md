@@ -122,3 +122,5 @@ O endpoint `/api/test/reminders` mostra em tempo real:
 - Quando os lembretes serão enviados
 - Notificações já enviadas
 - Configurações do sistema
+
+

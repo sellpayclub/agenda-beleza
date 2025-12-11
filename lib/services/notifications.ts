@@ -2,6 +2,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { formatCurrency, formatPhone } from '@/lib/utils/format'
 import type { Appointment, Client, Employee, Service, Tenant } from '@/types'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 interface AppointmentDetails {
   appointment: Appointment
@@ -59,57 +60,155 @@ function getManageLink(tenant: Tenant, appointmentId: string): string {
   return `${baseUrl}/b/${tenant.slug}/manage/${appointmentId}`
 }
 
-// WhatsApp message templates
-function getConfirmationWhatsAppMessage(details: AppointmentDetails): string {
+// Process message template - replace variables with actual values
+function processMessageTemplate(
+  template: string,
+  details: AppointmentDetails,
+  hoursBeforeText?: string
+): string {
   const { appointment, client, employee, service, tenant } = details
   const appointmentDate = format(new Date(appointment.start_time), "EEEE, dd 'de' MMMM", { locale: ptBR })
   const appointmentTime = format(new Date(appointment.start_time), 'HH:mm')
+  const appointmentDateShort = format(new Date(appointment.start_time), "dd/MM/yyyy", { locale: ptBR })
   const manageLink = getManageLink(tenant, appointment.id)
 
+  // Replace variables
+  let message = template
+    .replace(/{cliente_nome}/g, client.name || '')
+    .replace(/{cliente_telefone}/g, client.phone || '')
+    .replace(/{servico_nome}/g, service.name || '')
+    .replace(/{servico_preco}/g, formatCurrency(service.price || 0))
+    .replace(/{funcionario_nome}/g, employee.name || '')
+    .replace(/{data}/g, appointmentDate)
+    .replace(/{hora}/g, appointmentTime)
+    .replace(/{data_formatada}/g, appointmentDateShort)
+    .replace(/{link_reagendar}/g, manageLink)
+    .replace(/{nome_estabelecimento}/g, tenant.name || '')
+    .replace(/{tempo_antes}/g, hoursBeforeText || '')
+
+  // Replace endereco conditionally
+  if (tenant.address) {
+    message = message.replace(/{endereco}/g, `📍 *Endereço:* ${tenant.address}`)
+  } else {
+    message = message.replace(/{endereco}/g, '')
+  }
+
+  // Clean up multiple newlines
+  message = message.replace(/\n{3,}/g, '\n\n')
+
+  return message.trim()
+}
+
+// Get default confirmation message template
+function getDefaultConfirmationTemplate(): string {
   return `✅ *Agendamento Confirmado*
 
-Olá ${client.name}!
+Olá {cliente_nome}!
 
 Seu agendamento foi confirmado:
 
-📋 *Serviço:* ${service.name}
-👤 *Profissional:* ${employee.name}
-📅 *Data:* ${appointmentDate}
-⏰ *Horário:* ${appointmentTime}
-💰 *Valor:* ${formatCurrency(service.price)}
+📋 *Serviço:* {servico_nome}
+👤 *Profissional:* {funcionario_nome}
+📅 *Data:* {data}
+⏰ *Horário:* {hora}
+💰 *Valor:* {servico_preco}
 
-${tenant.address ? `📍 *Endereço:* ${tenant.address}` : ''}
+{endereco}
 
 🔗 *Reagendar ou cancelar:*
-${manageLink}
+{link_reagendar}
 
 Qualquer dúvida, entre em contato!
 
-_${tenant.name}_`
+_{nome_estabelecimento}_`
 }
 
-function getReminderWhatsAppMessage(details: AppointmentDetails, hoursBeforeText: string): string {
-  const { appointment, client, employee, service, tenant } = details
-  const appointmentTime = format(new Date(appointment.start_time), 'HH:mm')
-  const manageLink = getManageLink(tenant, appointment.id)
-
+// Get default reminder template
+function getDefaultReminderTemplate(): string {
   return `⏰ *Lembrete de Agendamento*
 
-Olá ${client.name}!
+Olá {cliente_nome}!
 
-Seu agendamento é *${hoursBeforeText}* às *${appointmentTime}*.
+Seu agendamento é *{tempo_antes}* às *{hora}*.
 
-📋 *Serviço:* ${service.name}
-👤 *Profissional:* ${employee.name}
+📋 *Serviço:* {servico_nome}
+👤 *Profissional:* {funcionario_nome}
 
-${tenant.address ? `📍 *Endereço:* ${tenant.address}` : ''}
+{endereco}
 
 🔗 *Precisa reagendar ou cancelar?*
-${manageLink}
+{link_reagendar}
 
 Estamos esperando você! 😊
 
-_${tenant.name}_`
+_{nome_estabelecimento}_`
+}
+
+// WhatsApp message templates
+async function getConfirmationWhatsAppMessage(details: AppointmentDetails): Promise<string> {
+  const { tenant } = details
+  
+  // Buscar template personalizado
+  try {
+    const supabase = createAdminClient() as any
+    const { data: settings } = await supabase
+      .from('tenant_settings')
+      .select('message_templates')
+      .eq('tenant_id', tenant.id)
+      .single()
+
+    const templates = (settings?.message_templates as any) || {}
+    const customTemplate = templates.confirmation
+
+    if (customTemplate && customTemplate.trim()) {
+      return processMessageTemplate(customTemplate, details)
+    }
+  } catch (error) {
+    console.error('Error fetching custom template:', error)
+    // Fallback to default
+  }
+
+  // Use default template
+  const defaultTemplate = getDefaultConfirmationTemplate()
+  return processMessageTemplate(defaultTemplate, details)
+}
+
+async function getReminderWhatsAppMessage(details: AppointmentDetails, hoursBeforeText: string): Promise<string> {
+  const { tenant } = details
+  
+  // Determinar qual template usar (24h ou 1h)
+  const templateKey = hoursBeforeText.includes('24') || hoursBeforeText.includes('amanhã') 
+    ? 'reminder_24h' 
+    : 'reminder_1h'
+  
+  // Buscar template personalizado
+  try {
+    const supabase = createAdminClient() as any
+    const { data: settings } = await supabase
+      .from('tenant_settings')
+      .select('message_templates')
+      .eq('tenant_id', tenant.id)
+      .single()
+
+    const templates = (settings?.message_templates as any) || {}
+    const customTemplate = templates[templateKey]
+
+    if (customTemplate && customTemplate.trim()) {
+      let processed = processMessageTemplate(customTemplate, details, hoursBeforeText)
+      // Replace tempo_antes if exists in template
+      processed = processed.replace(/{tempo_antes}/g, hoursBeforeText)
+      return processed
+    }
+  } catch (error) {
+    console.error('Error fetching custom template:', error)
+    // Fallback to default
+  }
+
+  // Use default template
+  const defaultTemplate = getDefaultReminderTemplate()
+  let processed = processMessageTemplate(defaultTemplate, details, hoursBeforeText)
+  processed = processed.replace(/{tempo_antes}/g, hoursBeforeText)
+  return processed
 }
 
 function getCancellationWhatsAppMessage(details: AppointmentDetails): string {
@@ -139,14 +238,14 @@ _${tenant.name}_`
 // Main notification functions
 export async function sendConfirmationWhatsApp(details: AppointmentDetails): Promise<boolean> {
   const { client, tenant } = details
-  const message = getConfirmationWhatsAppMessage(details)
+  const message = await getConfirmationWhatsAppMessage(details)
   const instanceName = (tenant as any).whatsapp_instance
   return sendWhatsAppMessage(client.phone, message, instanceName)
 }
 
 export async function sendReminderWhatsApp(details: AppointmentDetails, hoursBeforeText: string): Promise<boolean> {
   const { client, tenant } = details
-  const message = getReminderWhatsAppMessage(details, hoursBeforeText)
+  const message = await getReminderWhatsAppMessage(details, hoursBeforeText)
   const instanceName = (tenant as any).whatsapp_instance
   return sendWhatsAppMessage(client.phone, message, instanceName)
 }

@@ -62,12 +62,14 @@ import {
   Eye,
   RefreshCw,
   ExternalLink,
+  Plus,
 } from 'lucide-react'
 import {
   updateTenantSubscription,
   updateTenantData,
   deleteTenant,
   searchTenants,
+  createTenant,
 } from '@/lib/actions/admin'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -145,6 +147,19 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
   // Delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletingTenant, setDeletingTenant] = useState<Tenant | null>(null)
+  
+  // Create dialog
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [createForm, setCreateForm] = useState({
+    businessName: '',
+    email: '',
+    phone: '',
+    password: '',
+    adminName: '',
+    status: 'trial' as 'trial' | 'active' | 'cancelled' | 'expired',
+    plan: 'start',
+  })
+  const [creating, setCreating] = useState(false)
 
   const handleSearch = async () => {
     setIsSearching(true)
@@ -233,6 +248,44 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
     }
   }
 
+  const handleCreateClick = () => {
+    setCreateForm({
+      businessName: '',
+      email: '',
+      phone: '',
+      password: '',
+      adminName: '',
+      status: 'trial',
+      plan: 'start',
+    })
+    setCreateDialogOpen(true)
+  }
+
+  const handleCreateSubmit = async () => {
+    if (!createForm.businessName || !createForm.email || !createForm.phone || !createForm.password || !createForm.adminName) {
+      toast.error('Preencha todos os campos obrigatórios')
+      return
+    }
+
+    setCreating(true)
+    try {
+      const result = await createTenant(createForm)
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Tenant criado com sucesso!')
+        setCreateDialogOpen(false)
+        // Recarregar lista de tenants
+        const results = await searchTenants(search, filterStatus)
+        setTenants(results)
+      }
+    } catch (error) {
+      toast.error('Erro ao criar tenant')
+    } finally {
+      setCreating(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -310,7 +363,8 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
       {/* Search and Filter */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
@@ -340,6 +394,11 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
                 <Search className="w-4 h-4" />
               )}
               <span className="ml-2">Buscar</span>
+            </Button>
+            </div>
+            <Button onClick={handleCreateClick} className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600">
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Novo Tenant
             </Button>
           </div>
         </CardContent>
@@ -556,6 +615,114 @@ export function AdminClient({ initialStats, initialTenants }: AdminClientProps) 
               Cancelar
             </Button>
             <Button onClick={handleStatusSubmit}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Criar Novo Tenant</DialogTitle>
+            <DialogDescription>
+              Crie um novo negócio no sistema com usuário admin inicial
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="businessName">Nome do Negócio *</Label>
+                <Input
+                  id="businessName"
+                  value={createForm.businessName}
+                  onChange={(e) => setCreateForm({ ...createForm, businessName: e.target.value })}
+                  placeholder="Ex: Salão de Beleza"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="adminName">Nome do Admin *</Label>
+                <Input
+                  id="adminName"
+                  value={createForm.adminName}
+                  onChange={(e) => setCreateForm({ ...createForm, adminName: e.target.value })}
+                  placeholder="Ex: João Silva"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={createForm.email}
+                  onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                  placeholder="admin@exemplo.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone *</Label>
+                <Input
+                  id="phone"
+                  value={createForm.phone}
+                  onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                  placeholder="11999999999"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha Inicial *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={createForm.password}
+                onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                placeholder="Senha para login"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status Inicial</Label>
+                <Select value={createForm.status} onValueChange={(v: any) => setCreateForm({ ...createForm, status: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="trial">Trial</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                    <SelectItem value="expired">Expirado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="plan">Plano Inicial</Label>
+                <Select value={createForm.plan} onValueChange={(v) => setCreateForm({ ...createForm, plan: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="start">Plano Start (R$ 9,90)</SelectItem>
+                    <SelectItem value="completo">Plano Completo (R$ 19,90)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateSubmit} disabled={creating}>
+              {creating ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                'Criar Tenant'
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

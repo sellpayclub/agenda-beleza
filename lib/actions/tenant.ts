@@ -233,3 +233,61 @@ export async function getTenantPublicData(slug: string) {
   return data
 }
 
+export async function updateMessageTemplates(templates: {
+  confirmation?: string | null
+  reminder_24h?: string | null
+  reminder_1h?: string | null
+}) {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return { error: 'Não autorizado' }
+  const user = currentUser as any
+
+  const supabase = createAdminClient() as any
+
+  // Buscar templates atuais
+  const { data: currentSettings } = await supabase
+    .from('tenant_settings')
+    .select('message_templates')
+    .eq('tenant_id', user.tenant_id)
+    .single()
+
+  // Mesclar com templates existentes
+  const currentTemplates = (currentSettings?.message_templates as any) || {
+    confirmation: null,
+    reminder_24h: null,
+    reminder_1h: null,
+  }
+
+  const updatedTemplates = {
+    ...currentTemplates,
+    ...templates,
+  }
+
+  // Validar estrutura JSON
+  try {
+    JSON.stringify(updatedTemplates)
+  } catch (error) {
+    return { error: 'Estrutura de templates inválida' }
+  }
+
+  const { data: settings, error } = await supabase
+    .from('tenant_settings')
+    .update({
+      message_templates: updatedTemplates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('tenant_id', user.tenant_id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating message templates:', error)
+    return { error: 'Erro ao atualizar templates de mensagem' }
+  }
+
+  revalidatePath('/dashboard/mensagens')
+  revalidatePath('/dashboard/configuracoes')
+  
+  return { data: settings }
+}
+
