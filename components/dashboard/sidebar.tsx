@@ -21,7 +21,6 @@ import {
   Wallet,
   Shield,
   FileText,
-  TestTube,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -90,11 +89,6 @@ const menuItems = [
     label: 'Mensagens',
     href: '/dashboard/mensagens',
     icon: FileText,
-  },
-  {
-    label: 'Testes',
-    href: '/dashboard/testes',
-    icon: TestTube,
   },
   // Assinatura removida - gerenciamento feito na LastLink
   {
