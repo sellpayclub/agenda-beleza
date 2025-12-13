@@ -306,34 +306,66 @@ export default function LandingPage() {
                 OFERTA ESPECIAL
               </div>
               
-              <div className="text-center pt-4">
-                <h3 className="text-2xl font-bold text-white mb-4">Plano Único Anual</h3>
+              <div className="text-center pt-4 mb-6">
+                <h3 className="text-3xl font-bold text-white mb-2">Plano Único Anual</h3>
+                <p className="text-violet-300 font-semibold text-lg mb-4">Sistema completo</p>
                 <div className="flex items-baseline justify-center gap-2 mb-2">
                   <span className="text-5xl font-bold text-white">R$ 197</span>
                   <span className="text-xl text-violet-300">/ ano</span>
                 </div>
                 <p className="text-gray-300 mb-2">ou</p>
-                <p className="text-2xl font-semibold text-emerald-400 mb-6">
-                  12x de R$ 19,90
+                <p className="text-2xl font-semibold text-emerald-400 mb-2">
+                  12x de R$ 19,90 no cartão de crédito
                 </p>
-                
-                <a 
-                  href="https://pay.cakto.com.br/yk2ptg6_683104" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button
-                    size="lg"
-                    className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white text-xl font-bold px-8 py-8 shadow-xl shadow-violet-500/40"
-                  >
-                    GARANTIR ACESSO AGORA
-                    <ArrowRight className="ml-2 h-6 w-6" />
-                  </Button>
-                </a>
-                <p className="text-gray-400 text-sm mt-4">
-                  Garantia de 7 dias ou seu dinheiro de volta
+                <p className="text-amber-400 text-sm font-medium">
+                  (1 único cliente recuperado já paga o investimento)
                 </p>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                {[
+                  'Agendamentos ilimitados',
+                  'Clientes ilimitados',
+                  'Funcionários ilimitados',
+                  'WhatsApp integrado e automático',
+                  'Dashboard e Analytics completos',
+                  'Controle financeiro total',
+                  'Relatórios exportáveis (Excel/PDF)',
+                  'Página de agendamento personalizada',
+                  'White-label e personalização completa',
+                  'Segurança e backup automático',
+                  'Sincronização em tempo real',
+                  'Lembretes automáticos (24h e 1h antes)',
+                  'Personalização de mensagens automáticas',
+                  'Configurações avançadas',
+                  'Conexão de WhatsApp',
+                  'Suporte prioritário',
+                ].map((feature, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-emerald-400" />
+                    </div>
+                    <span className="text-gray-200 text-sm">{feature}</span>
+                  </div>
+                ))}
+              </div>
+                
+              <a 
+                href="https://pay.cakto.com.br/yk2ptg6_683104" 
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white text-xl font-bold px-8 py-8 shadow-xl shadow-violet-500/40"
+                >
+                  GARANTIR ACESSO AGORA
+                  <ArrowRight className="ml-2 h-6 w-6" />
+                </Button>
+              </a>
+              <p className="text-gray-400 text-sm mt-4 text-center">
+                Garantia de 7 dias ou seu dinheiro de volta
+              </p>
             </div>
           </div>
         </section>
