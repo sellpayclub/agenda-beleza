@@ -7,95 +7,88 @@ import {
 import { VideoDemo } from '@/components/video-demo'
 import { DelayedContent } from '@/components/delayed-content'
 import { Button } from '@/components/ui/button'
-import { getTranslations } from 'next-intl/server'
 
-export default async function LandingPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}) {
-  const { locale } = await params
-  const t = await getTranslations('landing')
+export default function LandingPage() {
   const allFeatures = [
     {
       icon: Calendar,
-      title: t('features.items.multiSchedule.title'),
-      description: t('features.items.multiSchedule.description'),
+      title: 'Agenda Multi-funcionário',
+      description: 'Gerencie múltiplos funcionários com agendas individuais e visão geral completa.',
     },
     {
       icon: Users,
-      title: t('features.items.clients.title'),
-      description: t('features.items.clients.description'),
+      title: 'Gestão de Clientes',
+      description: 'Cadastro completo de clientes com histórico de atendimentos e preferências.',
     },
     {
       icon: Scissors,
-      title: t('features.items.services.title'),
-      description: t('features.items.services.description'),
+      title: 'Catálogo de Serviços',
+      description: 'Configure serviços com preços, durações e profissionais habilitados.',
     },
     {
       icon: UserCheck,
-      title: t('features.items.employees.title'),
-      description: t('features.items.employees.description'),
+      title: 'Gestão de Funcionários',
+      description: 'Controle horários, folgas e comissões de cada profissional.',
     },
     {
       icon: BarChart3,
-      title: t('features.items.analytics.title'),
-      description: t('features.items.analytics.description'),
+      title: 'Dashboard Completo',
+      description: 'Métricas e relatórios em tempo real sobre seu negócio.',
     },
     {
       icon: DollarSign,
-      title: t('features.items.finance.title'),
-      description: t('features.items.finance.description'),
+      title: 'Controle Financeiro',
+      description: 'Acompanhe receitas, despesas e lucro com relatórios detalhados.',
     },
     {
       icon: MessageSquare,
-      title: t('features.items.whatsapp.title'),
-      description: t('features.items.whatsapp.description'),
+      title: 'WhatsApp Automático',
+      description: 'Lembretes e confirmações automáticas via WhatsApp.',
     },
     {
       icon: Bell,
-      title: t('features.items.email.title'),
-      description: t('features.items.email.description'),
+      title: 'Notificações por Email',
+      description: 'Envio automático de emails de confirmação e lembrete.',
     },
     {
       icon: Palette,
-      title: t('features.items.whitelabel.title'),
-      description: t('features.items.whitelabel.description'),
+      title: 'White-label Completo',
+      description: 'Personalize cores, logo e marca da sua página de agendamento.',
     },
     {
       icon: Globe,
-      title: t('features.items.publicPage.title'),
-      description: t('features.items.publicPage.description'),
+      title: 'Página de Agendamento',
+      description: 'Link personalizado para seus clientes agendarem online 24/7.',
     },
     {
       icon: Clock,
-      title: t('features.items.blocks.title'),
-      description: t('features.items.blocks.description'),
+      title: 'Bloqueios de Horário',
+      description: 'Bloqueie horários para folgas, férias ou compromissos.',
     },
     {
       icon: CreditCard,
-      title: t('features.items.expenses.title'),
-      description: t('features.items.expenses.description'),
+      title: 'Controle de Despesas',
+      description: 'Registre e categorize todas as despesas do seu negócio.',
     },
     {
       icon: Shield,
-      title: t('features.items.security.title'),
-      description: t('features.items.security.description'),
+      title: 'Segurança Total',
+      description: 'Seus dados protegidos com criptografia de ponta.',
     },
     {
       icon: Zap,
-      title: t('features.items.realtime.title'),
-      description: t('features.items.realtime.description'),
+      title: 'Tempo Real',
+      description: 'Sincronização instantânea em todos os dispositivos.',
     },
     {
       icon: FileText,
-      title: t('features.items.reports.title'),
-      description: t('features.items.reports.description'),
+      title: 'Relatórios Exportáveis',
+      description: 'Exporte dados em Excel e PDF para sua contabilidade.',
     },
     {
       icon: Settings,
-      title: t('features.items.settings.title'),
-      description: t('features.items.settings.description'),
+      title: 'Configurações Avançadas',
+      description: 'Personalize cada detalhe do sistema para seu negócio.',
     },
   ]
 
@@ -281,7 +274,7 @@ export default async function LandingPage({
         <div className="relative max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-gray-300 mb-8">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            {t('hero.badge')}
+            Sistema ativo e funcionando
           </div>
           
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
