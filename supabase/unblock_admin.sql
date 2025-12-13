@@ -9,3 +9,5 @@ WHERE email = 'personaldann@gmail.com';
 SELECT id, name, email, subscription_status 
 FROM tenants 
 WHERE email = 'personaldann@gmail.com';
+
+

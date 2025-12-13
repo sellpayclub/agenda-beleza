@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/providers";
-import { FacebookPixel } from "@/components/facebook-pixel";
 
 const outfit = Outfit({ 
   subsets: ["latin"],
@@ -21,12 +19,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html suppressHydrationWarning>
       <body className={`${outfit.variable} font-sans antialiased`}>
-        <FacebookPixel />
-        <Providers>
-          {children}
-        </Providers>
+        {children}
       </body>
     </html>
   );

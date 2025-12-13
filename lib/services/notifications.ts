@@ -194,10 +194,8 @@ async function getReminderWhatsAppMessage(details: AppointmentDetails, hoursBefo
     const customTemplate = templates[templateKey]
 
     if (customTemplate && customTemplate.trim()) {
-      let processed = processMessageTemplate(customTemplate, details, hoursBeforeText)
-      // Replace tempo_antes if exists in template
-      processed = processed.replace(/{tempo_antes}/g, hoursBeforeText)
-      return processed
+      // processMessageTemplate já substitui {tempo_antes} na linha 87
+      return processMessageTemplate(customTemplate, details, hoursBeforeText)
     }
   } catch (error) {
     console.error('Error fetching custom template:', error)
@@ -205,10 +203,9 @@ async function getReminderWhatsAppMessage(details: AppointmentDetails, hoursBefo
   }
 
   // Use default template
+  // processMessageTemplate já substitui {tempo_antes} na linha 87
   const defaultTemplate = getDefaultReminderTemplate()
-  let processed = processMessageTemplate(defaultTemplate, details, hoursBeforeText)
-  processed = processed.replace(/{tempo_antes}/g, hoursBeforeText)
-  return processed
+  return processMessageTemplate(defaultTemplate, details, hoursBeforeText)
 }
 
 function getCancellationWhatsAppMessage(details: AppointmentDetails): string {

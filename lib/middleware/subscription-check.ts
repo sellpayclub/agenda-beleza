@@ -38,17 +38,20 @@ export function isSubscriptionActive(tenant: TenantSubscription | null): {
   }
 
   // Verificar status
-  if (status !== 'active') {
+  // Permitir acesso se status for 'active' ou 'trial' (mas ainda verificar expiração)
+  if (status === 'active' || status === 'trial') {
+    // Se já verificamos expiração por data acima, não precisa verificar novamente
     return {
-      active: false,
-      expired: status === 'expired',
-      reason: `Assinatura ${status}`,
+      active: true,
+      expired: false,
     }
   }
 
+  // Status 'cancelled' ou 'expired' bloqueia acesso
   return {
-    active: true,
-    expired: false,
+    active: false,
+    expired: status === 'expired',
+    reason: `Assinatura ${status}`,
   }
 }
 

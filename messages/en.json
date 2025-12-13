@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "optional": "Optional",
+    "required": "Required"
+  },
+  "landing": {
+    "header": {
+      "login": "Login"
+    },
+    "hero": {
+      "badge": "Over 500 businesses have already transformed their management",
+      "title": "Stop Losing Clients Due to",
+      "titleHighlight": "Disorganization and No-Shows",
+      "description": "Complete online booking system for any type of business that works with appointments.",
+      "descriptionHighlight": "Reduce no-shows by up to 90% and save 5+ hours per week"
+    },
+    "features": {
+      "title": "Complete Features",
+      "items": {
+        "multiSchedule": {
+          "title": "Smart Multi-Time Slot Booking",
+          "description": "Advanced system with configurable time slots, multi-employee support and automatic availability logic. Avoid conflicts and optimize your schedule."
+        },
+        "clients": {
+          "title": "Complete Client Management",
+          "description": "Unlimited client registration with complete history, preferences, notes and tracking of all appointments."
+        },
+        "services": {
+          "title": "Customizable Service Catalog",
+          "description": "Organize your services with prices, duration, description and specific association with qualified employees."
+        },
+        "employees": {
+          "title": "Team and Employee Management",
+          "description": "Register employees with individual schedules, specialties, differentiated permissions and commission control."
+        },
+        "analytics": {
+          "title": "Advanced Dashboard and Analytics",
+          "description": "Real-time metrics: revenue, bookings, occupancy rate, performance by employee and peak times."
+        },
+        "finance": {
+          "title": "Complete Financial Control",
+          "description": "Revenue management, expenses, exportable reports in Excel/PDF and monthly net profit tracking."
+        },
+        "whatsapp": {
+          "title": "Automatic WhatsApp Notifications",
+          "description": "WhatsApp integration for confirmations, 24h and 1h reminders, and personalized messages. Reduce no-shows by up to 90%!"
+        },
+        "email": {
+          "title": "Automatic Email Reminders",
+          "description": "Professional and customizable email notification system so your clients never forget."
+        },
+        "whitelabel": {
+          "title": "100% Customizable White-Label",
+          "description": "Your brand highlighted: customize colors, logo, own domain and create a unique identity."
+        },
+        "publicPage": {
+          "title": "Public Booking Page",
+          "description": "Unique Linktree-style link focused on bookings. Share on social media and receive bookings 24/7."
+        },
+        "blocks": {
+          "title": "Flexible Schedule Blocks",
+          "description": "Block times for vacations, lunch, events or unavailability with a few clicks."
+        },
+        "expenses": {
+          "title": "Expense and Cost Management",
+          "description": "Record and categorize all your business expenses. Have total control of your cash flow."
+        },
+        "security": {
+          "title": "Multi-Tenant and Security",
+          "description": "Each business with 100% isolated and secure environment. Your data protected with cutting-edge encryption."
+        },
+        "realtime": {
+          "title": "Real-Time Synchronization",
+          "description": "All changes appear instantly for the entire team. Zero booking conflicts."
+        },
+        "reports": {
+          "title": "Exportable Reports",
+          "description": "Export financial and booking reports in Excel/PDF for detailed analysis."
+        },
+        "settings": {
+          "title": "Advanced Settings",
+          "description": "Customize intervals between appointments, minimum advance time, cancellation rules and much more."
+        }
+      }
+    }
+  },
+  "dashboard": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "appointments": "Appointments",
+      "services": "Services",
+      "employees": "Employees",
+      "blocks": "Blocks",
+      "clients": "Clients",
+      "finance": "Finance",
+      "expenses": "Expenses",
+      "analytics": "Analytics",
+      "whatsapp": "WhatsApp",
+      "messages": "Messages",
+      "settings": "Settings",
+      "signOut": "Sign Out"
+    }
+  },
+  "whatsapp": {
+    "confirmation": {
+      "title": "✅ *Appointment Confirmed*",
+      "greeting": "Hello {cliente_nome}!",
+      "confirmed": "Your appointment has been confirmed:",
+      "service": "📋 *Service:* {servico_nome}",
+      "professional": "👤 *Professional:* {funcionario_nome}",
+      "date": "📅 *Date:* {data}",
+      "time": "⏰ *Time:* {hora}",
+      "price": "💰 *Amount:* {servico_preco}",
+      "address": "📍 *Address:* {endereco}",
+      "manage": "🔗 *Reschedule or cancel:*",
+      "link": "{link_reagendar}",
+      "contact": "If you have any questions, please contact us!",
+      "signature": "_{nome_estabelecimento}_"
+    },
+    "reminder": {
+      "title": "⏰ *Appointment Reminder*",
+      "greeting": "Hello {cliente_nome}!",
+      "reminder": "Your appointment is *{tempo_antes}* at *{hora}*.",
+      "service": "📋 *Service:* {servico_nome}",
+      "professional": "👤 *Professional:* {funcionario_nome}",
+      "address": "📍 *Address:* {endereco}",
+      "manage": "🔗 *Need to reschedule or cancel?*",
+      "link": "{link_reagendar}",
+      "closing": "We're looking forward to seeing you! 😊",
+      "signature": "_{nome_estabelecimento}_"
+    }
+  }
+}
+
+

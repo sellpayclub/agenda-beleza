@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "close": "Fechar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "confirm": "Confirmar",
+    "yes": "Sim",
+    "no": "Não",
+    "optional": "Opcional",
+    "required": "Obrigatório"
+  },
+  "landing": {
+    "header": {
+      "login": "Entrar"
+    },
+    "hero": {
+      "badge": "Mais de 500 negócios já transformaram sua gestão",
+      "title": "Pare de Perder Clientes por",
+      "titleHighlight": "Desorganização e Faltas",
+      "description": "Sistema completo de agendamento online para qualquer tipo de negócio que trabalha com agendamentos.",
+      "descriptionHighlight": "Reduza faltas em até 90% e economize 5+ horas por semana"
+    },
+    "features": {
+      "title": "Recursos Completos",
+      "items": {
+        "multiSchedule": {
+          "title": "Agendamento Inteligente Multi-Horários",
+          "description": "Sistema avançado com slots configuráveis, multi-funcionários e lógica de disponibilidade automática. Evite conflitos e otimize sua agenda."
+        },
+        "clients": {
+          "title": "Gestão Completa de Clientes",
+          "description": "Cadastro ilimitado de clientes com histórico completo, preferências, notas e acompanhamento de todos os atendimentos."
+        },
+        "services": {
+          "title": "Catálogo de Serviços Personalizável",
+          "description": "Organize seus serviços com preços, duração, descrição e associação específica com funcionários qualificados."
+        },
+        "employees": {
+          "title": "Gestão de Equipe e Funcionários",
+          "description": "Cadastre funcionários com horários individuais, especialidades, permissões diferenciadas e controle de comissões."
+        },
+        "analytics": {
+          "title": "Dashboard e Analytics Avançados",
+          "description": "Métricas em tempo real: receita, agendamentos, taxa de ocupação, performance por funcionário e horários de pico."
+        },
+        "finance": {
+          "title": "Controle Financeiro Completo",
+          "description": "Gestão de receitas, gastos, relatórios exportáveis em Excel/PDF e acompanhamento de lucro líquido mensal."
+        },
+        "whatsapp": {
+          "title": "Notificações WhatsApp Automáticas",
+          "description": "Integração com WhatsApp para confirmações, lembretes 24h e 1h antes, e mensagens personalizadas. Reduza faltas em até 90%!"
+        },
+        "email": {
+          "title": "Lembretes por Email Automáticos",
+          "description": "Sistema de notificações por email profissionais e personalizáveis para seus clientes nunca esquecerem."
+        },
+        "whitelabel": {
+          "title": "White-Label 100% Personalizável",
+          "description": "Sua marca em destaque: personalize cores, logo, domínio próprio e crie uma identidade única."
+        },
+        "publicPage": {
+          "title": "Página de Agendamento Pública",
+          "description": "Link único tipo Linktree focado em agendamento. Compartilhe nas redes sociais e receba agendamentos 24/7."
+        },
+        "blocks": {
+          "title": "Bloqueios de Agenda Flexíveis",
+          "description": "Bloqueie horários para férias, almoço, eventos ou indisponibilidades com poucos cliques."
+        },
+        "expenses": {
+          "title": "Gestão de Gastos e Despesas",
+          "description": "Registre e categorize todas as despesas do seu negócio. Tenha controle total do seu fluxo de caixa."
+        },
+        "security": {
+          "title": "Multi-Tenant e Segurança",
+          "description": "Cada negócio com ambiente 100% isolado e seguro. Seus dados protegidos com criptografia de ponta."
+        },
+        "realtime": {
+          "title": "Sincronização em Tempo Real",
+          "description": "Todas as alterações aparecem instantaneamente para toda equipe. Zero conflitos de agendamento."
+        },
+        "reports": {
+          "title": "Relatórios Exportáveis",
+          "description": "Exporte relatórios financeiros e de agendamentos em Excel/PDF para análise detalhada."
+        },
+        "settings": {
+          "title": "Configurações Avançadas",
+          "description": "Personalize intervalos entre atendimentos, tempo de antecedência mínima, regras de cancelamento e muito mais."
+        }
+      }
+    }
+  },
+  "dashboard": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "appointments": "Agendamentos",
+      "services": "Serviços",
+      "employees": "Funcionários",
+      "blocks": "Bloqueios",
+      "clients": "Clientes",
+      "finance": "Financeiro",
+      "expenses": "Gastos",
+      "analytics": "Analytics",
+      "whatsapp": "WhatsApp",
+      "messages": "Mensagens",
+      "settings": "Configurações",
+      "signOut": "Sair"
+    }
+  },
+  "whatsapp": {
+    "confirmation": {
+      "title": "✅ *Agendamento Confirmado*",
+      "greeting": "Olá {cliente_nome}!",
+      "confirmed": "Seu agendamento foi confirmado:",
+      "service": "📋 *Serviço:* {servico_nome}",
+      "professional": "👤 *Profissional:* {funcionario_nome}",
+      "date": "📅 *Data:* {data}",
+      "time": "⏰ *Horário:* {hora}",
+      "price": "💰 *Valor:* {servico_preco}",
+      "address": "📍 *Endereço:* {endereco}",
+      "manage": "🔗 *Reagendar ou cancelar:*",
+      "link": "{link_reagendar}",
+      "contact": "Qualquer dúvida, entre em contato!",
+      "signature": "_{nome_estabelecimento}_"
+    },
+    "reminder": {
+      "title": "⏰ *Lembrete de Agendamento*",
+      "greeting": "Olá {cliente_nome}!",
+      "reminder": "Seu agendamento é *{tempo_antes}* às *{hora}*.",
+      "service": "📋 *Serviço:* {servico_nome}",
+      "professional": "👤 *Profissional:* {funcionario_nome}",
+      "address": "📍 *Endereço:* {endereco}",
+      "manage": "🔗 *Precisa reagendar ou cancelar?*",
+      "link": "{link_reagendar}",
+      "closing": "Estamos esperando você! 😊",
+      "signature": "_{nome_estabelecimento}_"
+    }
+  }
+}
+
+
