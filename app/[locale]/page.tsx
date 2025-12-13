@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { VideoDemo } from '@/components/video-demo'
 import { DelayedContent } from '@/components/delayed-content'
+import { TodayBadge } from '@/components/today-badge'
 import { Button } from '@/components/ui/button'
 
 export default function LandingPage() {
@@ -215,67 +216,66 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-950">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gray-950/80 backdrop-blur-lg border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center h-16">
-            <div className="flex items-center gap-2">
-              {/* Logo Agendify */}
-              <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center overflow-hidden">
-                {/* Calendário com checkmark */}
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="absolute"
-                >
-                  {/* Calendário base */}
-                  <rect
-                    x="2"
-                    y="4"
-                    width="16"
-                    height="14"
-                    rx="2"
-                    fill="url(#calendarGradient)"
-                  />
-                  {/* Tabs do calendário */}
-                  <rect x="4" y="2" width="3" height="2" rx="1" fill="url(#calendarGradient)" />
-                  <rect x="9" y="2" width="3" height="2" rx="1" fill="url(#calendarGradient)" />
-                  {/* Checkmark azul escuro */}
-                  <path
-                    d="M6 10L8.5 12.5L14 7"
-                    stroke="#1e3a8a"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+      {/* Header - aparece após 9 minutos */}
+      <DelayedContent delayMinutes={9}>
+        <header className="fixed top-0 left-0 right-0 z-50 bg-gray-950/80 backdrop-blur-lg border-b border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center h-16">
+              <div className="flex items-center gap-2">
+                {/* Logo Agendify */}
+                <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center overflow-hidden">
+                  {/* Calendário com checkmark */}
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
                     fill="none"
-                  />
-                  <defs>
-                    <linearGradient id="calendarGradient" x1="0" y1="0" x2="0" y2="20">
-                      <stop offset="0%" stopColor="#8b5cf6" />
-                      <stop offset="100%" stopColor="#ec4899" />
-                    </linearGradient>
-                  </defs>
-                </svg>
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute"
+                  >
+                    {/* Calendário base */}
+                    <rect
+                      x="2"
+                      y="4"
+                      width="16"
+                      height="14"
+                      rx="2"
+                      fill="url(#calendarGradient)"
+                    />
+                    {/* Tabs do calendário */}
+                    <rect x="4" y="2" width="3" height="2" rx="1" fill="url(#calendarGradient)" />
+                    <rect x="9" y="2" width="3" height="2" rx="1" fill="url(#calendarGradient)" />
+                    {/* Checkmark azul escuro */}
+                    <path
+                      d="M6 10L8.5 12.5L14 7"
+                      stroke="#1e3a8a"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                    />
+                    <defs>
+                      <linearGradient id="calendarGradient" x1="0" y1="0" x2="0" y2="20">
+                        <stop offset="0%" stopColor="#8b5cf6" />
+                        <stop offset="100%" stopColor="#ec4899" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+                <span className="font-bold text-white text-lg">Agendify</span>
               </div>
-              <span className="font-bold text-white text-lg">Agendify</span>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      </DelayedContent>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+      <section className="relative pt-16 pb-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900/20 via-gray-950 to-gray-950" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-violet-500/20 to-pink-500/20 rounded-full blur-3xl" />
         
         <div className="relative max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-gray-300 mb-8">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Sistema ativo e funcionando
-          </div>
+          <TodayBadge />
           
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
             Descubra Como Reduzir faltas em até 98% e Transformar horários vazios em faturamento sem trabalhar mais com essa
