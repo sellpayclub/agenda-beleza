@@ -23,8 +23,9 @@ export function VideoDemo() {
   return (
     <div className="mb-10 flex justify-center">
       <div 
+        style={{ width: '100%', maxWidth: '400px', aspectRatio: '9/16' }}
         dangerouslySetInnerHTML={{
-          __html: `<vturb-smartplayer id="vid-693d7721b50e82e7e2e12f28" style="display: block; margin: 0 auto; width: 100%; max-width: 400px;"></vturb-smartplayer>`
+          __html: `<vturb-smartplayer id="vid-693d7721b50e82e7e2e12f28" style="display: block; margin: 0 auto; width: 100%; height: 100%;"></vturb-smartplayer>`
         }}
       />
     </div>
