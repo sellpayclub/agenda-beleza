@@ -8,9 +8,9 @@ export function TodayBadge() {
   })
 
   return (
-    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/20 border border-red-500/50 text-sm text-white font-semibold mb-8">
-      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-      AULA GRÁTIS DISPONÍVEL ATÉ {today}
+    <div className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 rounded-full bg-red-500/20 border border-red-500/50 text-xs sm:text-sm text-white font-semibold mb-6 sm:mb-8">
+      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+      <span className="text-center">AULA GRÁTIS DISPONÍVEL ATÉ {today}</span>
     </div>
   )
 }

@@ -270,21 +270,21 @@ export default function LandingPage() {
       </DelayedContent>
 
       {/* Hero */}
-      <section className="relative pt-16 pb-20 px-4 overflow-hidden">
+      <section className="relative pt-6 sm:pt-12 pb-8 sm:pb-16 px-4 overflow-hidden min-h-screen flex flex-col justify-center">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900/20 via-gray-950 to-gray-950" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-violet-500/20 to-pink-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-gradient-to-r from-violet-500/20 to-pink-500/20 rounded-full blur-3xl" />
         
-        <div className="relative max-w-5xl mx-auto text-center">
+        <div className="relative max-w-4xl mx-auto text-center px-2">
           <TodayBadge />
           
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight px-2">
             Descubra Como Reduzir faltas em até 98% e Transformar horários vazios em faturamento sem trabalhar mais com essa
             <span className="block bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent mt-2">
               Inteligência Artificial
             </span>
           </h1>
           
-          <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
             <span className="text-white font-semibold">
               Exclusivo para todos os tipos de Negócios que usam agenda e horário marcados
             </span>
@@ -299,30 +299,31 @@ export default function LandingPage() {
       {/* Conteúdo com Delay de 9 minutos */}
       <DelayedContent delayMinutes={9}>
         {/* Seção de Preço Abaixo do Vídeo */}
-        <section className="py-12 px-4">
+        <section className="py-8 sm:py-12 px-3 sm:px-4">
           <div className="max-w-2xl mx-auto">
-            <div className="relative p-8 rounded-3xl bg-gradient-to-br from-violet-500/30 via-pink-500/20 to-violet-500/30 border-4 border-violet-400 shadow-2xl shadow-violet-500/30">
-              <div className="absolute -top-5 left-1/2 -translate-x-1/2 px-8 py-3 rounded-full bg-gradient-to-r from-violet-400 to-pink-500 text-white text-lg font-bold shadow-lg">
+            <div className="relative p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-violet-500/30 via-pink-500/20 to-violet-500/30 border-2 sm:border-4 border-violet-400 shadow-2xl shadow-violet-500/30">
+              <div className="absolute -top-4 sm:-top-5 left-1/2 -translate-x-1/2 px-4 sm:px-8 py-2 sm:py-3 rounded-full bg-gradient-to-r from-violet-400 to-pink-500 text-white text-sm sm:text-lg font-bold shadow-lg whitespace-nowrap">
                 OFERTA ESPECIAL
               </div>
               
-              <div className="text-center pt-4 mb-6">
-                <h3 className="text-3xl font-bold text-white mb-2">Plano Único Anual</h3>
-                <p className="text-violet-300 font-semibold text-lg mb-4">Sistema completo</p>
-                <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-5xl font-bold text-white">R$ 197</span>
-                  <span className="text-xl text-violet-300">/ ano</span>
+              <div className="text-center pt-4 sm:pt-6 mb-4 sm:mb-6">
+                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Plano Único Anual</h3>
+                <p className="text-violet-300 font-semibold text-base sm:text-lg mb-3 sm:mb-4">Sistema completo</p>
+                <div className="flex items-baseline justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <span className="text-4xl sm:text-5xl font-bold text-white">R$ 197</span>
+                  <span className="text-lg sm:text-xl text-violet-300">/ ano</span>
                 </div>
-                <p className="text-gray-300 mb-2">ou</p>
-                <p className="text-2xl font-semibold text-emerald-400 mb-2">
-                  12x de R$ 19,90 no cartão de crédito
+                <p className="text-gray-300 mb-1 sm:mb-2 text-sm sm:text-base">ou</p>
+                <p className="text-xl sm:text-2xl font-semibold text-emerald-400 mb-1 sm:mb-2">
+                  12x de R$ 19,90
                 </p>
-                <p className="text-amber-400 text-sm font-medium">
+                <p className="text-xs sm:text-sm text-gray-400">no cartão de crédito</p>
+                <p className="text-amber-400 text-xs sm:text-sm font-medium mt-2">
                   (1 único cliente recuperado já paga o investimento)
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+              <div className="grid grid-cols-1 gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                 {[
                   'Agendamentos ilimitados',
                   'Clientes ilimitados',
@@ -342,10 +343,10 @@ export default function LandingPage() {
                   'Suporte prioritário',
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-3 h-3 text-emerald-400" />
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400" />
                     </div>
-                    <span className="text-gray-200 text-sm">{feature}</span>
+                    <span className="text-gray-200 text-xs sm:text-sm">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -357,13 +358,13 @@ export default function LandingPage() {
               >
                 <Button
                   size="lg"
-                  className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white text-xl font-bold px-8 py-8 shadow-xl shadow-violet-500/40"
+                  className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white text-base sm:text-xl font-bold px-4 sm:px-8 py-6 sm:py-8 shadow-xl shadow-violet-500/40"
                 >
                   GARANTIR ACESSO AGORA
-                  <ArrowRight className="ml-2 h-6 w-6" />
+                  <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6" />
                 </Button>
               </a>
-              <p className="text-gray-400 text-sm mt-4 text-center">
+              <p className="text-gray-400 text-xs sm:text-sm mt-3 sm:mt-4 text-center">
                 Garantia de 7 dias ou seu dinheiro de volta
               </p>
             </div>
