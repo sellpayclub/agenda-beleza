@@ -8,13 +8,16 @@ export type Locale = (typeof locales)[number]
 // Idioma padrão
 export const defaultLocale: Locale = 'pt'
 
-export default getRequestConfig(async ({ locale }) => {
+export default getRequestConfig(async ({ requestLocale }) => {
+  const locale = await requestLocale
+  
   // Validar que o locale recebido é válido
-  if (!locales.includes(locale as Locale)) {
+  if (!locale || !locales.includes(locale as Locale)) {
     notFound()
   }
 
   return {
+    locale,
     messages: (await import(`./messages/${locale}.json`)).default
   }
 })
